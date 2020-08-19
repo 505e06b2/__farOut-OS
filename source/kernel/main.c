@@ -18,9 +18,10 @@ unsigned char drive_id;
 #endasm
 
 void main() {
-	asm "mov _drive_id, dl"; //save drive id
+	asm "mov _drive_id, dl";
 	//screen_clear();
 	puts("Done!");
+
 	print("Drive ID => 0x"); print(itoa(drive_id, 16));
 
 	while(1) asm "hlt";

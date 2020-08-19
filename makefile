@@ -1,6 +1,6 @@
 BOOT=obj/bootloader.bin
 KERNEL=contents/kernel.bin
-FLOPPY=floppy.raw
+FLOPPY=floppy.img
 
 CFLAGS=-0 -W -Md -ansi -c -Isource/kernel/include/
 LDFLAGS=-d -M
@@ -12,8 +12,8 @@ all: $(BOOT) $(KERNEL)
 $(BOOT): source/bootloader/boot.nasm
 	nasm $^ -f bin -o $@
 
-$(KERNEL): obj/main.o obj/io.o obj/lib.o
-	ld86 $(LDFLAGS) $^ -L/usr/lib/bcc/ -lc -o $@
+$(KERNEL): obj/main.o obj/io.o obj/lib.o obj/bcc_int.o
+	ld86 $(LDFLAGS) $^ -o $@
 
 obj/%.o: source/kernel/%.c
 	bcc $(CFLAGS) $< -o $@

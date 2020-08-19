@@ -1,6 +1,8 @@
 #ifndef LIB_H
 #define LIB_H
 
-char *itoa(int, int);
+#define NULL 0
+
+char *itoa(int, char *, int);
 
 #endif

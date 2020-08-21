@@ -26,8 +26,7 @@ idiv_:
 /************************************************************************/
 /* Function idivu */
 
-/*
-#asm
+#asm //used in lib.c for unsigned div op
 
 ! idivu.s
 ! idiv_u doesn`t preserve dx (returns remainder in it)
@@ -39,11 +38,11 @@ idiv_u:
 	div	bx
 	ret
 #endasm
-*/
 
 /************************************************************************/
 /* Function imod */
 
+/*
 #asm
 
 ! imod.s
@@ -53,16 +52,16 @@ idiv_u:
 
 imod:
 	cwd
-	idiv	bx
-	mov	ax,dx
+	idiv bx
+	mov	 ax, dx
 	ret
 #endasm
+*/
 
 /************************************************************************/
 /* Function imodu */
 
-/*
-#asm
+#asm //used in lib.c for modulo op
 
 ! imodu.s
 ! imodu doesn`t preserve dx (returns quotient in it)
@@ -75,7 +74,6 @@ imodu:
 	mov	ax,dx		! instruction queue full so xchg slower
 	ret
 #endasm
-*/
 
 /************************************************************************/
 /* Function imul */

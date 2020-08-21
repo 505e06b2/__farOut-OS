@@ -420,7 +420,7 @@ print:
     userData       dw 0                         ; Start of the data sectors
     drive          db 0                         ; Boot drive number
 
-    filename       db "KERNEL  BIN"             ; Filename
+    filename       db "KERNEL  COM"             ; Filename
 
                    times 510 - ($ - $$) db 0    ; Pad remainder of boot sector with zeros
                    dw 0xaa55                    ; Boot signature

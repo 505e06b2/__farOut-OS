@@ -1,5 +1,5 @@
 BOOT=obj/bootloader.bin
-KERNEL=contents/kernel.bin
+KERNEL=contents/kernel.com
 FLOPPY=floppy.img
 
 CFLAGS=-0 -W -Md -ansi -c -Isource/kernel/include/

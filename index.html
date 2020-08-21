@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<title>Realmode Kernel</title>
+
+		<script src="pages_assets/v86_all.js"></script>
+		<script>
+		"use strict";
+
+		window.onload = function() {
+			const emulator = window.emulator = new V86Starter({
+				memory_size: 1024 * 1024,
+				vga_memory_size: 512 * 1024,
+				screen_container: document.getElementById("screen_container"),
+				bios: {
+					url: "pages_assets/seabios.bin",
+				},
+				vga_bios: {
+					url: "pages_assets/vgabios.bin",
+				},
+				hda: {
+					url: "floppy.img",
+				},
+				autostart: true,
+				disable_mouse: true
+			});
+		}
+		</script>
+	</head>
+	<body>
+		<div id="screen_container">
+			<div id="vga" style="white-space: pre; font: 14px monospace; line-height: 16px"></div>
+			<canvas style="display: none"></canvas>
+		</div>
+	</body>
+</html>

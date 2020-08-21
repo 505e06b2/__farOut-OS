@@ -7,7 +7,7 @@ void putchar(char c) {
 		push bx
 
 		mov ah, #0x0e  //teletype print
-		mov al, [bp+0x4] //use base pointer to get char
+		mov al, [bp+0x04] //truncate the value to al
 		xor bx, bx     //write to 0th page
 		int 0x10
 
@@ -39,4 +39,43 @@ void screen_clear() {
 
 		pop ax
 	#endasm
+}
+
+char getchar(char ret) { //so that it can be used with bp - need to figure out a way to access stack vars
+	ret = ret;
+	#asm
+		push ax
+
+		mov ah, #0x00
+		int 0x16
+		mov [bp+0x04], al
+
+		pop ax
+	#endasm
+	return ret;
+}
+
+char *gets(char *ret) {
+	char *ptr = ret;
+	char current_char;
+
+	while((current_char = getchar()) != '\r') {
+		if(current_char == '\010') { //backspace
+			if(ptr == ret) continue;
+			putchar('\010');
+			putchar(' ');
+			putchar('\010');
+			ptr--;
+			continue;
+		}
+		*ptr = current_char;
+		ptr++;
+		putchar(current_char);
+	}
+
+	*ptr = '\0';
+	putchar('\r');
+	putchar('\n');
+
+	return ret;
 }

@@ -1,21 +1,26 @@
 BOOT=obj/bootloader.bin
-KERNEL=contents/kernel.com
+LIBS=obj/lib_io.o obj/lib_stdlib.o obj/lib_bcc_int.o
+KERNEL=floppy_contents/kernel.com
 FLOPPY=floppy.img
 
-CFLAGS=-0 -W -Md -ansi -c -Isource/kernel/include/
+CFLAGS=-0 -W -Md -ansi -c -Isrc/libs/include/
 LDFLAGS=-d -M
 
-.PHONY: run init clean
+.PHONY: run init clean debug_kernel
 
 all: $(BOOT) $(KERNEL)
 
-$(BOOT): source/bootloader/boot.nasm
+$(BOOT): src/bootloader.nasm
 	nasm $^ -f bin -o $@
 
-$(KERNEL): obj/main.o obj/io.o obj/lib.o obj/bcc_int.o
+$(KERNEL): obj/kernel.o $(LIBS)
 	ld86 $(LDFLAGS) $^ -o $@
 
-obj/%.o: source/kernel/%.c
+obj/%.o: src/%.c
+	bcc $(CFLAGS) $< -o $@
+
+# Must use a header file for each c file - makes sure that if the header is changed in any lib, the lib is recompiled
+obj/lib_%.o: src/libs/%.c src/libs/include/%.h
 	bcc $(CFLAGS) $< -o $@
 
 init:
@@ -25,9 +30,12 @@ init:
 run: all
 	dd conv=notrunc if=$(BOOT) of=$(FLOPPY) bs=1 skip=62 seek=62
 	sudo mount -o loop $(FLOPPY) /mnt/
-	sudo cp contents/* /mnt/
+	sudo cp floppy_contents/* /mnt/
 	sudo umount /mnt/
 	qemu-system-i386 -drive file=$(FLOPPY),index=0,media=disk,format=raw
+
+debug_kernel: $(KERNEL)
+	ndisasm -b 16 -p intel $<
 
 clean:
 	rm -f $(FLOPPY)

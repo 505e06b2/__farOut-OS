@@ -10,7 +10,7 @@ AS=nasm -f bin
 LD=ia16-elf-ld
 CC=ia16-elf-gcc
 
-CFLAGS=-c -Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -O0
+CFLAGS=-c -Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -O1
 LDFLAGS=--oformat=binary -mi386msdos
 
 .PHONY: run init clean debug_kernel

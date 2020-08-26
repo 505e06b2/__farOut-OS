@@ -45,6 +45,8 @@ asm (
 	"mov ds, ax;"
 	"mov es, ax;"
 	"mov ss, ax;"
+	"mov ax, 0xfffc;"
+	"mov sp, ax;" //set stack pointer to bottom of segment (4-byte aligned)
 	"sti;"
 );
 

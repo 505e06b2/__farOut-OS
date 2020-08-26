@@ -5,6 +5,7 @@
  * __idiv.o __idivu.o __imod.o __imodu.o __imul.o __isl.o __isr.o __isru.o
  */
 
+#ifdef __BCC__
 /************************************************************************/
 /* Function idiv */
 
@@ -148,3 +149,4 @@ isru:
 	ret
 #endasm
 */
+#endif

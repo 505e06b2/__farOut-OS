@@ -1,27 +1,34 @@
+#https://launchpad.net/~tkchia/+archive/ubuntu/build-ia16/
+#https://github.com/tkchia/gcc-ia16/wiki
+
 BOOT=obj/bootloader.bin
-LIBS=obj/lib_io.o obj/lib_stdlib.o obj/lib_bcc_int.o
+LIBS := $(patsubst src/libs/%.c,obj/lib_%.o,$(wildcard src/libs/*.c))
 KERNEL=floppy_contents/kernel.com
 FLOPPY=floppy.img
 
-CFLAGS=-0 -W -Md -ansi -c -Isrc/libs/include/
-LDFLAGS=-d -M
+AS=nasm -f bin
+LD=ia16-elf-ld
+CC=ia16-elf-gcc
+
+CFLAGS=-c -Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -O0
+LDFLAGS=--oformat=binary -mi386msdos
 
 .PHONY: run init clean debug_kernel
 
 all: $(BOOT) $(KERNEL)
 
 $(BOOT): src/bootloader.nasm
-	nasm $^ -f bin -o $@
+	$(AS) $^ -o $@
 
 $(KERNEL): obj/kernel.o $(LIBS)
-	ld86 $(LDFLAGS) $^ -o $@
+	$(LD) $(LDFLAGS) $^ -o $@
 
 obj/%.o: src/%.c
-	bcc $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $< -o $@
 
 # Must use a header file for each c file - makes sure that if the header is changed in any lib, the lib is recompiled
 obj/lib_%.o: src/libs/%.c src/libs/include/%.h
-	bcc $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $< -o $@
 
 init:
 	dd if=/dev/zero of=$(FLOPPY) bs=512 count=2880

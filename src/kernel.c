@@ -1,5 +1,6 @@
 #include "io.h"
 #include "stdlib.h"
+#include "stdint.h"
 
 /* Quick Inline ASM tips for BCC *
 - When specifying a number, put # before it -> #0x0a
@@ -34,44 +35,50 @@ Registers
 Segments
 - Max size of 64k (but also minimum size, since there are no hard boundries outside of this one)
 - Each segment register points to the start of a 64k segment, so that the program can use more than 64k at once
-- For COM files, like this kernel, the Data and Code segments (DS/CS) are the same, while the stack sits elsewhere
+- For COM files, like this kernel, all segments (CS/DS/SS/ES) are the same
 */
 
-#define STACK_ADDRESS 0x00010500 //64k from 0x500 - 16 byte aligned
+asm (
+	"cli;"
+	//tiny memory model -> ds = ss = es = cs
+	"mov ax, cs;"
+	"mov ds, ax;"
+	"mov es, ax;"
+	"mov ss, ax;"
+	"sti;"
+);
 
-#define STACK_SEGMENT (STACK_ADDRESS >> 4)
-#define STACK_OFFSET  (STACK_ADDRESS & 0xf)
+uint8_t boot_drive_id;
 
-#asm
-	cli
-	//data segment must match code segment, as we use the COM executable format
-	mov ax, cs
-	mov ds, ax
-	//set the stack to the above offset
-    mov ax, #STACK_SEGMENT
-    mov ss, ax
-    mov sp, #STACK_OFFSET
-	sti
-#endasm
-
-unsigned char boot_drive_id;
-#asm //Must do this in every program if wanting to read from boot drive
-	mov _boot_drive_id, dl
-#endasm
+asm (//Must do this in every program if wanting to read from boot drive
+	"mov boot_drive_id, dl"
+);
 
 void main() {
-	char buffer[512];
+	uint8_t disk_buffer[512];
+	char text_buffer[30];
+	bpb_t *bpb_info;
 
 	screen_clear();
 	puts("Booted into fiveOS");
+	print("Drive ID => 0x"); puts(itoa(boot_drive_id, text_buffer, 16));
+
+	print("bpb size => "); puts(itoa(sizeof(bpb_t), text_buffer, 10));
+
+
+	bpb_info = getBPB(boot_drive_id, disk_buffer);
+	if(bpb_info == NULL) {
+		puts("!!!Could not parse boot sector!!!");
+		halt();
+	}
+
+	puts("Loaded BPB");
+
+	print("number_of_fats = "); puts(itoa(bpb_info->fats, text_buffer, 10));
+
+	print("Press Enter to continue");
+	gets(text_buffer);
 	puts("Launching shell...");
-
-	print("Drive ID => 0x"); puts(itoa(boot_drive_id, buffer, 16));
-
-	readSector(boot_drive_id, buffer, 0);
-	if(buffer[510] == 0x55 && buffer[511] == 0xaa) puts("Readsector successful");
-	else puts("!!!Readsector unsuccessful!!!");
-
-	while(1) asm "hlt";
+	halt();
 }
 

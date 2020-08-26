@@ -85,7 +85,7 @@ uint8_t *readSector(uint8_t drive_id, uint8_t *buffer, uint16_t sector_start, ui
 		"mov es, ax;"
 		"mov bx, %0;" //buffer
 		"push bx;"
-		"mov ax, 0;" //sector start
+		"mov ax, %1;" //sector start
 		"mov bl, 18;"
 		"div bl;"
 		"inc ah;"
@@ -94,13 +94,13 @@ uint8_t *readSector(uint8_t drive_id, uint8_t *buffer, uint16_t sector_start, ui
 		"shr ch, 1;"
 		"mov dh, al;"
 		"and dh, 1;"
-		"mov dl, %3;" //drive id
+		"mov dl, %2;" //drive id
 		"pop bx;"
 		"_load_sectors_redo: mov ah, 2;" //set Read Sector
-		"mov al, %4;" //sector count
+		"mov al, %3;" //sector count
 		"int 0x13;"
 		"jc _load_sectors_redo;"
-		: "+g" (buffer)
+		:
 		: "g" (buffer), "g" (sector_start), "g" (drive_id), "g" (sector_count)
 		: "ax", "bx", "cx", "dx", "cc", "memory"
 	);

@@ -10,4 +10,6 @@ typedef unsigned int uint16_t;
 typedef long int32_t;
 typedef unsigned long uint32_t;
 
+typedef unsigned long size_t;
+
 #endif

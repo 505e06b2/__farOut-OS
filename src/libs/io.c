@@ -1,6 +1,5 @@
 #include "io.h"
 
-
 void putchar(char c) { //c is stored in AX
 	asm volatile (
 		"mov ah, 0x0e;"  //teletype print
@@ -78,42 +77,34 @@ char *gets(char *ret) {
 	return ret;
 }
 
-uint8_t *readSector(uint8_t drive_id, uint8_t *buffer, uint16_t sector_start, uint8_t sector_count) {
+void _getCHS(chs_t *chs, uint16_t lba) {
+	chs->cx.segments.cylinder = lba / H_x_SPT;
+	chs->dh.segments.head = (lba % H_x_SPT) / SECTORS_PER_TRACK;
+	chs->cx.segments.sector = (lba % H_x_SPT) % SECTORS_PER_TRACK;
+}
+
+uint8_t *readSector(uint8_t drive_id, uint8_t *buffer, uint16_t lba) {
+	chs_t chs;
+	_getCHS(&chs, lba);
+
 	asm volatile (
-		//essentially taken from fryy/io.c -> load_sectors
-		"mov ax, ss;" //ss, since the buffer should be on the stack -> buffer[512]
+		"mov ax, ss;" //ss -> es, since the buffer should be on the stack -> buffer[512]
 		"mov es, ax;"
-		"mov bx, %0;" //buffer
-		"push bx;"
-		"mov ax, %1;" //sector start
-		"mov bl, 18;"
-		"div bl;"
-		"inc ah;"
-		"mov cl, ah;"
-		"mov ch, al;"
-		"shr ch, 1;"
-		"mov dh, al;"
-		"and dh, 1;"
-		"mov dl, %2;" //drive id
-		"pop bx;"
-		"_load_sectors_redo: mov ah, 2;" //set Read Sector
-		"mov al, %3;" //sector count
+		"mov bx, %0;"
+
+		"mov cx, %2;"
+		"inc cl;" //sector is 1 indexed
+
+		"mov dh, %3;"
+		"mov dl, %1;"
+
+		"mov al, 1;"
+		"mov ah, 0x02;"
 		"int 0x13;"
-		"jc _load_sectors_redo;"
 		:
-		: "g" (buffer), "g" (sector_start), "g" (drive_id), "g" (sector_count)
-		: "ax", "bx", "cx", "dx", "cc", "memory"
+		: "g" (buffer), "g" (drive_id), "g" (chs.cx.raw), "g" (chs.dh.raw)
+		: "ax", "bx", "cx", "dx", "cc", "memory", "es"
 	);
 	return buffer;
 }
 
-bpb_t *getBPB(uint8_t drive_id, uint8_t *buffer) {
-	bpb_t *bpb = (bpb_t *)buffer;
-	readSector(drive_id, buffer, 0, 1);
-
-	if(bpb->signature[0] == 0x55 && bpb->signature[1] == 0xaa) {
-		return bpb;
-	} else {
-		return NULL;
-	}
-}

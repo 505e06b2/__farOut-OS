@@ -11,7 +11,7 @@ LD=ia16-elf-ld
 CC=ia16-elf-gcc
 
 CFLAGS=-c -Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -O1
-LDFLAGS=--oformat=binary -mi386msdos
+LDFLAGS=--oformat=binary -mi386msdos -Map symbols_map.txt --cref
 
 .PHONY: run init clean debug_kernel
 
@@ -32,7 +32,7 @@ obj/lib_%.o: src/libs/%.c src/libs/include/%.h
 
 init:
 	dd if=/dev/zero of=$(FLOPPY) bs=512 count=2880
-	mkfs.fat -F 12 -D 0 -n "5OS" $(FLOPPY)
+	mkfs.fat -D 0 -n "5OS" $(FLOPPY)
 
 run: all
 	dd conv=notrunc if=$(BOOT) of=$(FLOPPY) bs=1 skip=62 seek=62

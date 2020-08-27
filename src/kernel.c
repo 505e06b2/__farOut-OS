@@ -1,4 +1,5 @@
 #include "io.h"
+#include "fs.h"
 #include "stdlib.h"
 #include "stdint.h"
 
@@ -6,6 +7,8 @@
 - When specifying a number, put # before it -> #0x0a
 - When using an interrupt, don't use #
 - Otherwise, it's just intel/NASM
+
+Currently not even using BCC, but may come in handy in the future - GCC is infintely better though
 
 = Research on 8086 =
 
@@ -53,34 +56,39 @@ asm (
 uint8_t boot_drive_id;
 
 asm (//Must do this in every program if wanting to read from boot drive
-	"mov boot_drive_id, dl"
+	"mov boot_drive_id, dl;"
 );
 
 void main() {
 	uint8_t disk_buffer[512];
 	char text_buffer[30];
 	bpb_t *bpb_info;
+	file_info_t *file_info;
 
 	screen_clear();
 	puts("Booted into fiveOS");
 	print("Drive ID => 0x"); puts(itoa(boot_drive_id, text_buffer, 16));
 
-	print("bpb size => "); puts(itoa(sizeof(bpb_t), text_buffer, 10));
-
+	readSector(boot_drive_id, disk_buffer, 0);
 
 	bpb_info = getBPB(boot_drive_id, disk_buffer);
 	if(bpb_info == NULL) {
 		puts("!!!Could not parse boot sector!!!");
 		halt();
 	}
+	puts("Loaded BPB :)");
 
-	puts("Loaded BPB");
+	uint16_t root_dir_start = bpb_info->reserved_sectors + (bpb_info->fats * bpb_info->sectors_per_fat);
 
-	print("number_of_fats = "); puts(itoa(bpb_info->fats, text_buffer, 10));
+	readSector(boot_drive_id, disk_buffer, root_dir_start);
 
-	print("Press Enter to continue");
-	gets(text_buffer);
-	puts("Launching shell...");
-	halt();
+	puts("\r\nReading root directory...");
+	print_directory((file_info_t *)disk_buffer);
+
+	puts("Press any key to launch shell");
+	getchar();
+
+	puts("...");
+	panic();
 }
 

@@ -1,9 +1,11 @@
 #include "fs.h"
 
 bpb_t *getBPB(uint8_t drive_id, bpb_t *bpb) {
-	readSector(drive_id, (uint8_t *)bpb, 0);
+	uint8_t bootsector[512];
+	readSector(drive_id, bootsector, 0);
 
-	if(bpb->signature[0] == 0x55 && bpb->signature[1] == 0xaa) {
+	if(bootsector[510] == 0x55 && bootsector[511] == 0xaa) {
+		memcpy(bpb, bootsector+3, sizeof(bpb_t)); //+3 to remove the jmp
 		return bpb;
 	} else {
 		return NULL;

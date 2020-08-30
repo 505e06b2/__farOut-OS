@@ -67,8 +67,6 @@ void _start() {
 	puts("Booted into fiveOS");
 	printf("Drive ID => 0x%2x\r\n", boot_drive_id);// puts(itoa(boot_drive_id, text_buffer, 16));
 
-	readSector(boot_drive_id, (uint8_t *)&bpb_info, 0);
-
 	if(getBPB(boot_drive_id, &bpb_info) == NULL) {
 		puts("!!!Could not parse boot sector!!!");
 		halt();

@@ -17,8 +17,7 @@ enum file_info_attributes {
 
 #pragma pack(1)
 
-typedef struct bpb_s { //BIOS parameter block
-	uint8_t initial_bootstrap[3];
+typedef struct bpb_s { //BIOS parameter block with bootstrap code removed
 	char description[8];
 	uint16_t bytes_per_sector;
 	uint8_t sectors_per_cluster;
@@ -38,8 +37,6 @@ typedef struct bpb_s { //BIOS parameter block
 	uint32_t volume_id;
 	char label[11];
 	char file_system[8];
-	uint8_t bootstrap[448];
-	uint8_t signature[2];
 } bpb_t;
 
 typedef union file_info_time_u {

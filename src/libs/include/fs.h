@@ -87,6 +87,6 @@ typedef struct { //long filename
 
 bpb_t *getBPB(uint8_t, bpb_t *);
 file_info_t *find_file_info(uint8_t, bpb_t *, file_info_t *, const char *);
-//void print_root_directory(uint8_t, const bpb_t *); //USES SO MUCH SPACE
+void print_root_directory(uint8_t, const bpb_t *); //USES SO MUCH SPACE
 
 #endif

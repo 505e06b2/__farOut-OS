@@ -11,7 +11,7 @@ LD=ia16-elf-ld
 CC=ia16-elf-gcc
 
 #Optimising - Os doesnt work for fs.o - look into it (make sure that the entrypoints use O1 though, or they will be reordered
-#gc-sections doesnt work and may not be very good when freestanding, it also seems like this compiler doesn't have LTO, so look into fs.h/fs.c for workaround
+#gc-sections doesnt work and may not be very good when freestanding, it also seems like this compiler doesn't have LTO, check fs.c to see a workaround
 CFLAGS=-Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -O1 -MMD -MP
 LDFLAGS=--oformat=binary -mi386msdos -Map symbols_map.txt
 

@@ -33,7 +33,7 @@ file_info_t *find_file_info(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file
 	return NULL;
 }
 
-#ifdef print_root_directory
+#if 0 //disable as it's huge
 	void print_root_directory(uint8_t drive_id, const bpb_t *bpb_info) {
 		const uint16_t root_dir_start = bpb_info->reserved_sectors + (bpb_info->fats * bpb_info->sectors_per_fat);
 		const uint16_t root_dir_sectors = ((bpb_info->root_directory_entries * sizeof(file_info_t)) + (bpb_info->bytes_per_sector - 1)) / bpb_info->bytes_per_sector; //round to the biggest sector

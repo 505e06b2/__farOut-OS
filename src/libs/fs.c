@@ -24,6 +24,16 @@ file_info_t *find_file_info(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file
 		readSector(drive_id, root_dir_buffer, root_dir_start + i);
 
 		for(size_t i = 0; i < 16; i++) { // 512 / 32 -> bytes_per_sector / sizeof(file_info_t) = 16
+			switch((uint8_t)current_file[i].name[0]) { //special cases
+				case 0x00: return NULL; //unused, exit
+				case 0x2e: continue; //directory
+				case 0xe5: continue; //deleted
+
+				case 0x05: //char is actually 0xe5
+					current_file[i].name[0] = 0xe5;
+					break;
+			}
+
 			if(strncmp(filename, current_file[i].name, 11) == 0) {
 				memcpy(file_info, &current_file[i], sizeof(file_info_t));
 				return file_info;

@@ -10,9 +10,21 @@ AS=nasm -f bin
 LD=ia16-elf-ld
 CC=ia16-elf-gcc
 
-#Optimising - Os doesnt work for fs.o - look into it (make sure that the entrypoints use O1 though, or they will be reordered
-#gc-sections doesnt work and may not be very good when freestanding, it also seems like this compiler doesn't have LTO, check fs.c to see a workaround
-CFLAGS=-Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -O1 -MMD -MP
+#Optimising - Os doesnt work for fs.o - It does some weird stuff with far pointers and memcpy (might try to do some "built-in" optimisations for memcpy)
+#gc-sections doesnt work and may not be very good when freestanding, it also seems like this compiler doesn't have LTO - all the more reason to have a separate libc
+#-Os 1385 with no memcpy
+#-O1 1575 no memcpy
+#-O1 -fcrossjumping 1512 no memcpy
+
+#-O1 1588
+#-O1 -fcrossjumping -fpeephole2 1518
+#-O1 -fcrossjumping -fpeephole2 -fexpensive-optimizations 1481
+
+CFLAGS=-Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -O1 -MMD -MP\
+-fcrossjumping\
+-fpeephole2\
+-fexpensive-optimizations
+
 LDFLAGS=--oformat=binary -mi386msdos -Map symbols_map.txt
 
 .PHONY: run init clean debug_kernel check_files

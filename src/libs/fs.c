@@ -1,12 +1,12 @@
 #include "fs.h"
 
-bpb_t *getBPB(uint8_t drive_id, bpb_t *bpb) {
+bpb_t *getBPB(uint8_t drive_id, bpb_t *bpb_info) {
 	uint8_t bootsector[512];
 	readSector(drive_id, bootsector, 0);
 
 	if(bootsector[510] == 0x55 && bootsector[511] == 0xaa) {
-		memcpy(bpb, bootsector+3, sizeof(bpb_t)); //+3 to remove the jmp
-		return bpb;
+		memcpy(bpb_info, bootsector+3, sizeof(bpb_t)); //+3 to remove the jmp
+		return bpb_info;
 	} else {
 		return NULL;
 	}
@@ -17,23 +17,24 @@ file_info_t *find_file_info(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file
 	const uint16_t root_dir_sectors = ((bpb_info->root_directory_entries * sizeof(file_info_t)) + (bpb_info->bytes_per_sector - 1)) / bpb_info->bytes_per_sector; //round to the biggest sector
 
 	//use the stack to avoid fragmentation
-	uint8_t root_dir_buffer[bpb_info->bytes_per_sector * root_dir_sectors]; //this could be optimised for sector *2, but only after printf
+	uint8_t root_dir_buffer[bpb_info->bytes_per_sector];
 	file_info_t *current_file = (file_info_t *)root_dir_buffer;
 
 	for(size_t i = 0; i < root_dir_sectors; i++) { //!!! I feel like there could be a bug in this
-		readSector(drive_id, root_dir_buffer + (i * bpb_info->bytes_per_sector), root_dir_start + i);
-	}
+		readSector(drive_id, root_dir_buffer, root_dir_start + i);
 
-	for(; ((uint8_t *)current_file)[0] != 0; current_file++) { //does the pointer arithmetic for me
-		if(strncmp(filename, current_file->name, 11) == 0) {
-			memcpy(file_info, current_file, sizeof(file_info_t));
-			return file_info;
+		for(size_t i = 0; i < 16; i++) { // 512 / 32 -> bytes_per_sector / sizeof(file_info_t) = 16
+			if(strncmp(filename, current_file[i].name, 11) == 0) {
+				memcpy(file_info, &current_file[i], sizeof(file_info_t));
+				return file_info;
+			}
 		}
 	}
+
 	return NULL;
 }
 
-#if 0 //disable as it's huge
+#if 0 //!!! disable as it's huge
 	void print_root_directory(uint8_t drive_id, const bpb_t *bpb_info) {
 		const uint16_t root_dir_start = bpb_info->reserved_sectors + (bpb_info->fats * bpb_info->sectors_per_fat);
 		const uint16_t root_dir_sectors = ((bpb_info->root_directory_entries * sizeof(file_info_t)) + (bpb_info->bytes_per_sector - 1)) / bpb_info->bytes_per_sector; //round to the biggest sector
@@ -48,6 +49,7 @@ file_info_t *find_file_info(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file
 
 		puts("Root Directory:");
 		for(; ((uint8_t *)current_file)[0] != 0; current_file++) { //does the sizeof for me
+			if(((uint8_t *)current_file)[0] == 0xe5) continue; //unused
 			if(current_file->attributes == LONG_FILENAME) continue;
 			if(current_file->attributes == VOLUME_ID) continue;
 			//filename

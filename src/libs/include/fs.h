@@ -3,6 +3,7 @@
 
 #include "stdint.h"
 #include "io.h"
+#include "string.h"
 
 enum file_info_attributes {
 	READ_ONLY = 0x01,
@@ -87,7 +88,8 @@ typedef struct { //long filename
 
 #pragma pack()
 
-bpb_t *getBPB(uint8_t, uint8_t *);
-void print_directory(file_info_t *);
+bpb_t *getBPB(uint8_t, bpb_t *);
+file_info_t *find_file_info(uint8_t, bpb_t *, file_info_t *, const char *);
+//void print_root_directory(uint8_t, const bpb_t *); //USES SO MUCH SPACE
 
 #endif

@@ -10,10 +10,12 @@ AS=nasm -f bin
 LD=ia16-elf-ld
 CC=ia16-elf-gcc
 
-CFLAGS=-c -Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -O1
-LDFLAGS=--oformat=binary -mi386msdos -Map symbols_map.txt --cref
+#Optimising - Os doesnt work for fs.o - look into it (make sure that the entrypoints use O1 though, or they will be reordered
+#gc-sections doesnt work and may not be very good when freestanding, it also seems like this compiler doesn't have LTO, so look into fs.h/fs.c for workaround
+CFLAGS=-Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -O1 -MMD -MP
+LDFLAGS=--oformat=binary -mi386msdos -Map symbols_map.txt
 
-.PHONY: run init clean debug_kernel
+.PHONY: run init clean debug_kernel check_files
 
 all: $(BOOT) $(KERNEL)
 
@@ -23,12 +25,16 @@ $(BOOT): src/bootloader.nasm
 $(KERNEL): obj/kernel.o $(LIBS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
+#This will be used for entrypoint applications
 obj/%.o: src/%.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
-# Must use a header file for each c file - makes sure that if the header is changed in any lib, the lib is recompiled
-obj/lib_%.o: src/libs/%.c src/libs/include/%.h
-	$(CC) $(CFLAGS) $< -o $@
+obj/lib_%.o: src/libs/%.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+#depenancies
+-include obj/kernel.d
+-include $(LIBS:%.o=%.d)
 
 init:
 	dd if=/dev/zero of=$(FLOPPY) bs=512 count=2880
@@ -44,7 +50,10 @@ run: all
 debug_kernel: $(KERNEL)
 	ndisasm -b 16 -p intel $<
 
+files:
+	/bin/ls -la floppy_contents/
+
 clean:
-	rm -f $(FLOPPY)
+	#rm -f $(FLOPPY)
 	rm -f obj/*
-	rm -f contents/*
+	rm -f $(KERNEL)

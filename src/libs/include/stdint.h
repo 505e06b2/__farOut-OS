@@ -10,6 +10,6 @@ typedef unsigned int uint16_t;
 typedef long int32_t;
 typedef unsigned long uint32_t;
 
-typedef unsigned long size_t;
+typedef unsigned int size_t; //size_t was not defined in the lib's stdint
 
 #endif

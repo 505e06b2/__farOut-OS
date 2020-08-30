@@ -59,31 +59,30 @@ asm (//Must do this in every program if wanting to read from boot drive
 	"mov boot_drive_id, dl;"
 );
 
-void main() {
-	uint8_t disk_buffer[512];
-	char text_buffer[30];
-	bpb_t *bpb_info;
-	file_info_t *file_info;
+void _start() {
+	bpb_t bpb_info;
+	file_info_t file_info;
 
 	screen_clear();
 	puts("Booted into fiveOS");
-	print("Drive ID => 0x"); puts(itoa(boot_drive_id, text_buffer, 16));
+	printf("Drive ID => 0x%2x\r\n", boot_drive_id);// puts(itoa(boot_drive_id, text_buffer, 16));
 
-	readSector(boot_drive_id, disk_buffer, 0);
+	readSector(boot_drive_id, (uint8_t *)&bpb_info, 0);
 
-	bpb_info = getBPB(boot_drive_id, disk_buffer);
-	if(bpb_info == NULL) {
+	if(getBPB(boot_drive_id, &bpb_info) == NULL) {
 		puts("!!!Could not parse boot sector!!!");
 		halt();
 	}
 	puts("Loaded BPB :)");
 
-	uint16_t root_dir_start = bpb_info->reserved_sectors + (bpb_info->fats * bpb_info->sectors_per_fat);
+	//print_root_directory(boot_drive_id, &bpb_info);
 
-	readSector(boot_drive_id, disk_buffer, root_dir_start);
+	if(find_file_info(boot_drive_id, &bpb_info, &file_info, "KERNEL  COM") == NULL) {
+		puts("!!!Could not find \"KERNEL  COM\" on floppy!!!");
+		halt();
+	}
 
-	puts("\r\nReading root directory...");
-	print_directory((file_info_t *)disk_buffer);
+	printf("\"%8s.%3s\" - %d bytes\r\n", file_info.name, file_info.name+8, file_info.size);
 
 	puts("Press any key to launch shell");
 	getchar();

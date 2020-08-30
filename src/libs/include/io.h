@@ -1,8 +1,12 @@
 #ifndef _IO_H
 #define _IO_H
 
-#include "stdlib.h"
+#include <stdarg.h>
+
 #include "stdint.h"
+#include "stdlib.h"
+#include "ctype.h"
+#include "string.h"
 
 //QEMU SEEMS WEIRD ABOUT THIS
 #define SECTORS_PER_TRACK 0b00111111 //qemu sets this to the max?
@@ -25,16 +29,16 @@ typedef struct chs_s {
 	} dh;
 } chs_t;
 
-void putchar(char);
-void print(char *);
-void puts(char *);
+void putchar(const char);
+void print(const char *);
+void printf(const char *, ...);
+void puts(const char *);
 
 void screen_clear();
 
 char getchar();
 char *gets();
 
-void _getCHS(chs_t *, uint16_t);
 uint8_t *readSector(uint8_t, uint8_t *, uint16_t);
 
 #endif

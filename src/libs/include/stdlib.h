@@ -1,7 +1,8 @@
 #ifndef _LIB_H
 #define _LIB_H
 
-#include "stdint.h"
+#include <stdint.h>
+
 #include "io.h"
 
 #define NULL 0

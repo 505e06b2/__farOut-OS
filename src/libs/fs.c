@@ -1,10 +1,10 @@
 #include "fs.h"
 
 bpb_t *getBPB(uint8_t drive_id, bpb_t *bpb_info) {
-	uint8_t bootsector[512];
+	uint8_t bootsector[SECTOR_SIZE];
 	readSector(drive_id, bootsector, 0);
 
-	if(bootsector[510] == 0x55 && bootsector[511] == 0xaa) {
+	if(bootsector[SECTOR_SIZE-2] == 0x55 && bootsector[SECTOR_SIZE-1] == 0xaa) {
 		memcpy(bpb_info, bootsector+3, sizeof(bpb_t)); //+3 to remove the jmp
 		return bpb_info;
 	} else {
@@ -12,20 +12,20 @@ bpb_t *getBPB(uint8_t drive_id, bpb_t *bpb_info) {
 	}
 }
 
-file_info_t *find_file_info(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file_info, const char *filename) {
+file_info_t *findFileInfo(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file_info, const char *filename) {
 	const uint16_t root_dir_start = bpb_info->reserved_sectors + (bpb_info->fats * bpb_info->sectors_per_fat);
-	const uint16_t root_dir_sectors = ((bpb_info->root_directory_entries * sizeof(file_info_t)) + (bpb_info->bytes_per_sector - 1)) / bpb_info->bytes_per_sector; //round to the biggest sector
+	const uint16_t root_dir_sectors = ((bpb_info->root_directory_entries * sizeof(file_info_t)) + (SECTOR_SIZE - 1)) / SECTOR_SIZE; //round to the biggest sector
 
 	//use the stack to avoid fragmentation
-	uint8_t root_dir_buffer[bpb_info->bytes_per_sector];
+	uint8_t root_dir_buffer[SECTOR_SIZE];
 	file_info_t *current_file = (file_info_t *)root_dir_buffer;
 
 	for(size_t i = 0; i < root_dir_sectors; i++) { //!!! I feel like there could be a bug in this
 		readSector(drive_id, root_dir_buffer, root_dir_start + i);
 
-		for(size_t i = 0; i < 16; i++) { // 512 / 32 -> bytes_per_sector / sizeof(file_info_t) = 16
+		for(size_t i = 0; i < 16; i++) { // 512 / 32 -> SECTOR_SIZE / sizeof(file_info_t) = 16
 			switch((uint8_t)current_file[i].name[0]) { //special cases
-				case 0x00: return NULL; //unused, exit
+				case 0x00: return NULL; //unused, there shouldn't be any more data
 				case 0x2e: continue; //directory
 				case 0xe5: continue; //deleted
 
@@ -35,7 +35,7 @@ file_info_t *find_file_info(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file
 			}
 
 			if(strncmp(filename, current_file[i].name, 11) == 0) {
-				memcpy(file_info, &current_file[i], sizeof(file_info_t));
+				memcpy(file_info, &current_file[i], sizeof(file_info_t)); //this is the reason I can't use -Os -> something to do with far pointers that may have something to do with trying to optimise with the footprint of the included libc version
 				return file_info;
 			}
 		}
@@ -44,7 +44,12 @@ file_info_t *find_file_info(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file
 	return NULL;
 }
 
-#if 0 //!!! disable as it's huge
+uint16_t copyFileContents(uint8_t drive_id, uint16_t segment, uint16_t start_cluster) { //this would need to be int32 if fat32+
+	readSectorFar(drive_id, segment, 0, 0);
+	return segment;
+}
+
+/*!!! disable as it's huge + now out of date
 	void print_root_directory(uint8_t drive_id, const bpb_t *bpb_info) {
 		const uint16_t root_dir_start = bpb_info->reserved_sectors + (bpb_info->fats * bpb_info->sectors_per_fat);
 		const uint16_t root_dir_sectors = ((bpb_info->root_directory_entries * sizeof(file_info_t)) + (bpb_info->bytes_per_sector - 1)) / bpb_info->bytes_per_sector; //round to the biggest sector
@@ -91,4 +96,4 @@ file_info_t *find_file_info(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file
 			getchar();
 		}
 	}
-#endif
+*/

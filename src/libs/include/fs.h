@@ -53,7 +53,7 @@ typedef union file_info_date_u {
 	struct {
 		uint8_t day: 5;
 		uint8_t month: 4;
-		uint8_t year: 7;
+		uint8_t year: 7; //+1980
 	} value;
 } file_info_date_t;
 
@@ -86,7 +86,8 @@ typedef struct { //long filename
 #pragma pack()
 
 bpb_t *getBPB(uint8_t, bpb_t *);
-file_info_t *find_file_info(uint8_t, bpb_t *, file_info_t *, const char *);
-void print_root_directory(uint8_t, const bpb_t *); //USES SO MUCH SPACE
+file_info_t *findFileInfo(uint8_t, bpb_t *, file_info_t *, const char *);
+uint16_t copyFileContents(uint8_t, uint16_t, uint16_t);
+void printRootDirectory(uint8_t, const bpb_t *); //USES SO MUCH SPACE
 
 #endif

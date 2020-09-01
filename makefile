@@ -25,7 +25,7 @@ CFLAGS=-Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=
 -fpeephole2\
 -fexpensive-optimizations
 
-LDFLAGS=--oformat=binary -mi386msdos -Map symbols_map.txt
+LDFLAGS=--oformat=binary -m i386msdos -Map symbols_map.txt
 
 .PHONY: run init clean debug_kernel check_files
 

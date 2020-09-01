@@ -62,8 +62,9 @@ asm (//Must do this in every program if wanting to read from boot drive
 void _start() {
 	bpb_t bpb_info;
 	file_info_t file_info;
+	uint8_t byte;
 
-	screen_clear();
+	clearScreen();
 	puts("Booted into fiveOS");
 	printf("Drive ID => 0x%2x\r\n", boot_drive_id);// puts(itoa(boot_drive_id, text_buffer, 16));
 
@@ -75,12 +76,23 @@ void _start() {
 
 	//print_root_directory(boot_drive_id, &bpb_info);
 
-	if(find_file_info(boot_drive_id, &bpb_info, &file_info, "KERNEL  COM") == NULL) {
+	if(findFileInfo(boot_drive_id, &bpb_info, &file_info, "KERNEL  COM") == NULL) {
 		puts("!!!Could not find \"KERNEL  COM\" on floppy!!!");
 		halt();
 	}
 
 	printf("\"%8s.%3s\" - %d bytes\r\n", file_info.name, file_info.name+8, file_info.size);
+	copyFileContents(boot_drive_id, (0x00060000 >> 4), file_info.low_cluster_number); //can't get far pointers to work...
+	asm volatile (
+		"mov bx, 0x6000;"
+		"mov es, bx;"
+		"xor bx, bx;"
+		"mov %0, es:[bx];"
+		: "=g" (byte)
+		:
+		: "bx", "es"
+	);
+	printf("Byte at 0x00060000: %2x\r\n", byte);
 
 	puts("Press any key to launch shell");
 	getchar();

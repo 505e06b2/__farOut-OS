@@ -88,7 +88,7 @@ void puts(const char *str) {
 }
 
 
-void screen_clear() {
+void clearScreen() {
 	asm volatile (
 		"mov ah, 0x00;"
 		"mov al, 0x03;"
@@ -146,27 +146,32 @@ static void _getCHS(chs_t *chs, uint16_t lba) {
 }
 
 uint8_t *readSector(uint8_t drive_id, uint8_t *buffer, uint16_t lba) {
+	register uint16_t *stack_segment asm ("ss"); //the buffer should be on the stack -> buffer[SECTOR_SIZE]
+	readSectorFar(drive_id, (uint16_t)stack_segment, (uint16_t)buffer, lba);
+	return buffer;
+}
+
+void readSectorFar(uint8_t drive_id, uint16_t segment, uint16_t pointer, uint16_t lba) {
 	chs_t chs;
+
 	_getCHS(&chs, lba);
 
 	asm volatile (
-		"mov ax, ss;" //ss -> es, since the buffer should be on the stack -> buffer[512]
-		"mov es, ax;"
-		"mov bx, %0;"
+		"mov es, %0;"
+		"mov bx, %1;"
 
-		"mov cx, %2;"
+		"mov cx, %3;"
 		"inc cl;" //sector is 1 indexed
 
-		"mov dh, %3;"
-		"mov dl, %1;"
+		"mov dh, %4;"
+		"mov dl, %2;"
 
 		"mov al, 1;"
 		"mov ah, 0x02;"
 		"int 0x13;"
 		:
-		: "g" (buffer), "g" (drive_id), "g" (chs.cx.raw), "g" (chs.dh.raw)
+		: "g" (segment), "g" (pointer), "g" (drive_id), "g" (chs.cx.raw), "g" (chs.dh.raw)
 		: "ax", "bx", "cx", "dx", "cc", "memory", "es"
 	);
-	return buffer;
 }
 

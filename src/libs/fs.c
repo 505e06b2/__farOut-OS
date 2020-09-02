@@ -35,7 +35,7 @@ file_info_t *findFileInfo(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file_i
 			}
 
 			if(strncmp(filename, current_file[i].name, 11) == 0) {
-				memcpy(file_info, &current_file[i], sizeof(file_info_t)); //this is the reason I can't use -Os -> something to do with far pointers that may have something to do with trying to optimise with the footprint of the included libc version
+				memcpy(file_info, &current_file[i], sizeof(file_info_t));
 				return file_info;
 			}
 		}

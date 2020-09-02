@@ -62,7 +62,7 @@ asm (//Must do this in every program if wanting to read from boot drive
 void _start() {
 	bpb_t bpb_info;
 	file_info_t file_info;
-	uint8_t byte;
+	volatile uint8_t __far *byte;
 
 	clearScreen();
 	puts("Booted into fiveOS");
@@ -82,17 +82,9 @@ void _start() {
 	}
 
 	printf("\"%8s.%3s\" - %d bytes\r\n", file_info.name, file_info.name+8, file_info.size);
-	copyFileContents(boot_drive_id, (0x00060000 >> 4), file_info.low_cluster_number); //can't get far pointers to work...
-	asm volatile (
-		"mov bx, 0x6000;"
-		"mov es, bx;"
-		"xor bx, bx;"
-		"mov %0, es:[bx];"
-		: "=g" (byte)
-		:
-		: "bx", "es"
-	);
-	printf("Byte at 0x00060000: %2x\r\n", byte);
+	copyFileContents(boot_drive_id, PHYSICAL_ADDRESS_TO_SEGMENT(0x00060000), file_info.low_cluster_number);
+	byte = (volatile uint8_t __far *)(PHYSICAL_ADDRESS_TO_FAR_POINTER(0x00060000)); //got far pointers to work :-DDD
+	printf("Byte at 0x00060000: %2x\r\n", byte[0]);
 
 	puts("Press any key to launch shell");
 	getchar();

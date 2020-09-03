@@ -1,8 +1,5 @@
 #include "string.h"
 
-#pragma GCC push_options
-#pragma GCC optimize ("Os", "no-peephole2") //far pointers don't like peephole2
-
 size_t strlen(const volatile char __far *str) {
 	size_t ret = 0;
 	while(*str) {
@@ -26,5 +23,3 @@ volatile void __far *memcpy(volatile void __far *destination, const volatile voi
 	}
 	return destination;
 }
-
-#pragma GCC pop_options

@@ -12,8 +12,6 @@ CC=ia16-elf-gcc
 
 #Optimising
 #gc-sections doesnt work and may not be very good when freestanding, it also seems like this compiler doesn't have LTO
-
-#Peephole2 doesnt work well with far pointers - check string.c for details
 CFLAGS=-Isrc/libs/include/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -Os -MMD -MP
 
 LDFLAGS=--oformat=binary -m i386msdos -Map symbols_map.txt

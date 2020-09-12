@@ -78,6 +78,7 @@ void _start() {
 
 	if(findFileInfo(boot_drive_id, &bpb_info, &file_info, "KERNEL  COM") == NULL) {
 		puts("!!!Could not find \"KERNEL  COM\" on floppy!!!");
+		puts("This may have something to do with HDD/Floppy");
 		halt();
 	}
 

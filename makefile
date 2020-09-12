@@ -46,7 +46,7 @@ run: all
 	sudo mount -o loop $(FLOPPY) /mnt/
 	sudo cp floppy_contents/* /mnt/
 	sudo umount /mnt/
-	qemu-system-i386 -drive file=$(FLOPPY),index=0,media=disk,format=raw
+	qemu-system-i386 -fda $(FLOPPY)
 
 debug_kernel: $(KERNEL)
 	ndisasm -b 16 -p intel $<

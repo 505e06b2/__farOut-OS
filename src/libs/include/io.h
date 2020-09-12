@@ -9,9 +9,16 @@
 #include "string.h"
 
 #define SECTOR_SIZE 512
-//QEMU SEEMS WEIRD ABOUT THIS
+
+//USE THIS FOR HDD
+/*
 #define SECTORS_PER_TRACK 0b00111111 //qemu sets this to the max?
 #define NUMBER_OF_HEADS 0xff
+*/
+
+//FLOPPY SETTINGS
+#define SECTORS_PER_TRACK 18
+#define NUMBER_OF_HEADS 2
 #define H_x_SPT (NUMBER_OF_HEADS * SECTORS_PER_TRACK)
 
 typedef struct chs_s {

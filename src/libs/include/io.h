@@ -38,14 +38,14 @@ typedef struct chs_s {
 } chs_t;
 
 void putchar(const char);
-void print(const char *);
-void printf(const char *, ...);
-void puts(const char *);
+void print(const char __far *);
+void printf(const char __far *, ...);
+void puts(const char __far *);
 
 void clearScreen();
 
 char getchar();
-char *gets();
+char __far *gets(char __far *);
 
 uint8_t *readSector(uint8_t, uint8_t *, uint16_t);
 void readSectorFar(uint8_t, uint16_t, uint16_t, uint16_t);

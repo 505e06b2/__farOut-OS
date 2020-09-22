@@ -12,18 +12,18 @@ void putchar(const char c) { //c is stored in AX
 	);
 }
 
-void print(const char *str) {
+void print(const char __far *str) {
 	while(*str) {
 		putchar(*str);
 		str++;
 	}
 }
 
-void printf(const char *format, ...) {
+void printf(const char __far *format, ...) {
 	char text_buffer[30]; //for use with expanding chars
 	int fmt_add;
 	int wanted_size;
-	char *expanded_start;
+	char __far *expanded_start;
 
 	va_list args;
     va_start(args, format);
@@ -81,7 +81,7 @@ void printf(const char *format, ...) {
 	va_end(args);
 }
 
-void puts(const char *str) {
+void puts(const char __far *str) {
 	print(str);
 	putchar('\r');
 	putchar('\n');
@@ -114,8 +114,8 @@ char getchar() {
 }
 
 
-char *gets(char *ret) {
-	char *ptr = ret;
+char __far *gets(char __far *ret) {
+	char __far *ptr = ret;
 	char current_char;
 
 	while((current_char = getchar()) != '\r') {

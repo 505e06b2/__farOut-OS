@@ -1,7 +1,7 @@
 #include "io.h"
 #include "fs.h"
-#include "stdlib.h"
-#include "stdint.h"
+#include "utils.h"
+#include "stdint.h" //my version uses uin16_t as size_t
 
 /* Quick Inline ASM tips for BCC *
 - When specifying a number, put # before it -> #0x0a
@@ -55,7 +55,7 @@ asm (
 
 uint8_t boot_drive_id;
 
-asm (//Must do this in every program if wanting to read from boot drive
+asm ( //drives will be handled by the kernel, but this one is important to know
 	"mov boot_drive_id, dl;"
 );
 
@@ -78,7 +78,7 @@ void _start() {
 
 	if(findFileInfo(boot_drive_id, &bpb_info, &file_info, "KERNEL  COM") == NULL) {
 		puts("!!!Could not find \"KERNEL  COM\" on floppy!!!");
-		puts("This may have something to do with HDD/Floppy");
+		puts("This may have something to do with not differentiating HDD/Floppy");
 		halt();
 	}
 

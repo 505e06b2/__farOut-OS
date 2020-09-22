@@ -37,15 +37,13 @@ typedef struct chs_s {
 	} dh;
 } chs_t;
 
-void putchar(const char);
-void print(const char __far *);
-void printf(const char __far *, ...);
-void puts(const char __far *);
+void printChar(const char);
+void printString(const char __far *);
+
+char getChar();
+char __far *getString(char __far *);
 
 void clearScreen();
-
-char getchar();
-char __far *gets(char __far *);
 
 uint8_t *readSector(uint8_t, uint8_t *, uint16_t);
 void readSectorFar(uint8_t, uint16_t, uint16_t, uint16_t);

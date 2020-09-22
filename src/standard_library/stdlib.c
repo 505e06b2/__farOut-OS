@@ -15,12 +15,3 @@ char __far *itoa(uint16_t value, char __far *buffer, uint8_t base) {
 
 	return &buffer[index];
 }
-
-void halt() {
-	while(1) asm ("hlt");
-}
-
-void panic() {
-	puts("Kernel tried to exit, halting.");
-	halt();
-}

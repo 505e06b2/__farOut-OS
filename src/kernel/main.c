@@ -48,6 +48,7 @@ asm (
 	"mov ds, ax;"
 	"mov es, ax;"
 	"mov ss, ax;"
+
 	"mov ax, 0xfffc;"
 	"mov sp, ax;" //set stack pointer to bottom of segment (4-byte aligned)
 	"sti;"
@@ -65,32 +66,33 @@ void _start() {
 	volatile uint8_t __far *byte;
 
 	clearScreen();
-	puts("Booted into fiveOS");
-	printf("Drive ID => 0x%2x\r\n", boot_drive_id);// puts(itoa(boot_drive_id, text_buffer, 16));
+	//printString("Booted into fiveOS\r\n");
+	//printf("Drive ID => 0x%2x\r\n", boot_drive_id);
 
 	if(getBPB(boot_drive_id, &bpb_info) == NULL) {
-		puts("!!!Could not parse boot sector!!!");
+		printString("Could not parse boot sector!\r\n");
 		halt();
 	}
-	puts("Loaded BPB :)");
-
-	//print_root_directory(boot_drive_id, &bpb_info);
+	//printString("Loaded BPB :)\r\n");
 
 	if(findFileInfo(boot_drive_id, &bpb_info, &file_info, "KERNEL  COM") == NULL) {
-		puts("!!!Could not find \"KERNEL  COM\" on floppy!!!");
-		puts("This may have something to do with not differentiating HDD/Floppy");
+		printString("Could not find \"KERNEL  COM\" on disk!\r\n");
+		//printString("This may have something to do with not differentiating HDD/Floppy\r\n");
 		halt();
 	}
 
 	printf("\"%8s.%3s\" - %d bytes\r\n", file_info.name, file_info.name+8, file_info.size);
 	copyFileContents(boot_drive_id, PHYSICAL_ADDRESS_TO_SEGMENT(0x00060000), file_info.low_cluster_number);
-	byte = (volatile uint8_t __far *)(PHYSICAL_ADDRESS_TO_FAR_POINTER(0x00060000)); //got far pointers to work :-DDD
-	printf("Byte at 0x00060000: %2x\r\n", byte[0]);
 
-	puts("Press any key to launch shell");
-	getchar();
+	byte = (volatile uint8_t __far *)(PHYSICAL_ADDRESS_TO_FAR_POINTER(0x00060000));
+	if(byte[0] == 0xeb && byte[1] == 0x3c && byte[2] == 0x90 && byte[3] == 0x6d) {
+		//printString("First bytes of boot drive read successfully\r\n");
+	} else {
+		printString("First bytes of boot drive not read properly!\r\n");
+		halt();
+	}
 
-	puts("...");
+	//printString("...\r\n");
 	panic();
 }
 

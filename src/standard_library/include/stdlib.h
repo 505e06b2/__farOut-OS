@@ -2,7 +2,6 @@
 #define _STDLIB_H
 
 #include "stdint.h"
-#include "stdio.h"
 
 #define NULL 0
 

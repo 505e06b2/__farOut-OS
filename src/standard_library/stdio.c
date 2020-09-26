@@ -2,17 +2,25 @@
 
 static void _print(const char __far *str) {
 	while(*str) {
-		printChar(*str); //replace with kernel call
+		putchar(*str); //replace with kernel call
 		str++;
 	}
 }
 
 void putchar(const char c) {
-	printChar(c); //replace with kernel call
+	asm volatile (
+		"mov ah, 0x0e;"  //teletype print
+		"mov al, %0;"
+		"xor bx, bx;"     //write to 0th page
+		"int 0x10;"
+		:
+		: "r" (c)
+		: "ax", "bx"
+	);
 }
 
 void puts(const char __far *str) {
-	printString(str); //replace with kernel call
+	_print(str); //replace with kernel call
 	putchar('\r');
 	putchar('\n');
 }
@@ -81,9 +89,39 @@ void printf(const char __far *format, ...) {
 
 
 char getchar() {
-	return getChar(); //replace with kernel call
+	char ret;
+	asm volatile (
+		"mov ah, 0x00;"
+		"int 0x16;"
+		"mov %0, al;" //set ret
+		: "=r" (ret)
+		:
+		: "ax"
+	);
+	return ret;
 }
 
-char __far *gets(char __far *str) {
-	return getString(str); //replace with kernel call
+char __far *gets(char __far *ret) {
+	char __far *ptr = ret;
+	char current_char;
+
+	while((current_char = getchar()) != '\r') {
+		if(current_char == '\010') { //backspace
+			if(ptr == ret) continue; //already at inital cursor location
+			putchar('\010'); //move back
+			putchar(' '); //clear char
+			putchar('\010'); //move back
+			ptr--;
+			continue;
+		}
+		*ptr = current_char;
+		ptr++;
+		putchar(current_char);
+	}
+
+	*ptr = '\0';
+	putchar('\r');
+	putchar('\n');
+
+	return ret;
 }

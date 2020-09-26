@@ -1,27 +1,35 @@
 #include "fs.h"
 
-bpb_t *getBPB(uint8_t drive_id, bpb_t *bpb_info) {
-	uint8_t bootsector[SECTOR_SIZE];
-	readSector(drive_id, bootsector, 0);
+#include "stdio.h"
 
-	if(bootsector[SECTOR_SIZE-2] == 0x55 && bootsector[SECTOR_SIZE-1] == 0xaa) {
-		memcpy(bpb_info, bootsector+3, sizeof(bpb_t)); //+3 to remove the jmp
-		return bpb_info;
+drive_info_t *findDriveInfo(const uint8_t drive_id, drive_info_t *drive_info) {
+	bpb_t bootsector;
+	readSector(drive_id, (void *)&bootsector, 0);
+
+	if(bootsector.signature == 0xaa55) {
+		drive_info->id = drive_id;
+
+		drive_info->fat.amount = bootsector.fats;
+		drive_info->fat.size = bootsector.sectors_per_fat;
+		drive_info->fat.start = bootsector.reserved_sectors;
+
+		drive_info->root_directory.size = ((bootsector.root_directory_entries * sizeof(file_info_t)) + (SECTOR_SIZE - 1)) / SECTOR_SIZE; //round to the biggest sector
+		drive_info->root_directory.start = bootsector.reserved_sectors + (bootsector.fats * bootsector.sectors_per_fat);
+
+		drive_info->data.start = drive_info->root_directory.start + drive_info->root_directory.size;
+
+		return drive_info;
 	} else {
 		return NULL;
 	}
 }
 
-file_info_t *findFileInfo(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file_info, const char *filename) {
-	const uint16_t root_dir_start = bpb_info->reserved_sectors + (bpb_info->fats * bpb_info->sectors_per_fat);
-	const uint16_t root_dir_sectors = ((bpb_info->root_directory_entries * sizeof(file_info_t)) + (SECTOR_SIZE - 1)) / SECTOR_SIZE; //round to the biggest sector
-
-	//use the stack to avoid fragmentation
-	uint8_t root_dir_buffer[SECTOR_SIZE];
+file_info_t *findFileInfo(const drive_info_t *drive_info, const char *filename, file_info_t *file_info) {
+	uint8_t root_dir_buffer[SECTOR_SIZE]; //use the stack to avoid fragmentation
 	file_info_t *current_file = (file_info_t *)root_dir_buffer;
 
-	for(size_t i = 0; i < root_dir_sectors; i++) { //!!! I feel like there could be a bug in this
-		readSector(drive_id, root_dir_buffer, root_dir_start + i);
+	for(size_t i = 0; i < drive_info->root_directory.size; i++) { //!!! I feel like there could be a bug in this
+		readSector(drive_info->id, root_dir_buffer, drive_info->root_directory.start + i);
 
 		for(size_t i = 0; i < 16; i++) { // 512 / 32 -> SECTOR_SIZE / sizeof(file_info_t) = 16
 			switch((uint8_t)current_file[i].name[0]) { //special cases
@@ -44,56 +52,46 @@ file_info_t *findFileInfo(uint8_t drive_id, bpb_t *bpb_info, file_info_t *file_i
 	return NULL;
 }
 
-uint16_t copyFileContents(uint8_t drive_id, uint16_t segment, uint16_t start_cluster) { //this would need to be int32 if fat32+
-	readSectorFar(drive_id, segment, 0, 0);
-	return segment;
+static uint16_t _getFat12TableValue(uint8_t *buffer, const drive_info_t *drive_info, const uint16_t active_cluster) {
+	//https://wiki.osdev.org/FAT#File_Allocation_Table
+	uint16_t fat_index = active_cluster + (active_cluster/2); //must use ints
+	uint16_t fat_sector = drive_info->fat.start + (fat_index / (drive_info->fat.size * SECTOR_SIZE));
+	uint16_t table_value;
+
+	readSector(drive_info->id, buffer, fat_sector);
+	//printf("sector value: %d\r\n", fat_sector);
+
+	table_value = *(uint16_t *)&buffer[fat_index];
+
+	if(active_cluster & 0x0001) {
+		table_value = table_value >> 4;
+	} else {
+		table_value = table_value & 0x0FFF;
+	}
+
+	//printf("table value: 0x%x\r\n", table_value);
+	return table_value;
 }
 
-/*!!! disable as it's huge + now out of date
-	void print_root_directory(uint8_t drive_id, const bpb_t *bpb_info) {
-		const uint16_t root_dir_start = bpb_info->reserved_sectors + (bpb_info->fats * bpb_info->sectors_per_fat);
-		const uint16_t root_dir_sectors = ((bpb_info->root_directory_entries * sizeof(file_info_t)) + (bpb_info->bytes_per_sector - 1)) / bpb_info->bytes_per_sector; //round to the biggest sector
+uint16_t copyFileContents(const drive_info_t *drive_info, const file_info_t *file_info, uint16_t output_segment) { //clusters being 512 bytes
+	uint8_t fat_table[SECTOR_SIZE];
+	uint16_t current_value;
 
-		//use the stack to avoid fragmentation
-		uint8_t root_dir_buffer[bpb_info->bytes_per_sector * root_dir_sectors]; //this could be optimised for sector *2, but only after printf
-		file_info_t *current_file = (file_info_t *)root_dir_buffer;
+	uint16_t current_cluster = file_info->low_cluster_number;
+	size_t segment_sector = 0;
 
-		for(size_t i = 0; i < root_dir_sectors; i++) { //!!! I feel like there could be a bug in this
-			readSector(drive_id, root_dir_buffer + (i * bpb_info->bytes_per_sector), root_dir_start + i);
-		}
+	readSectorFar(drive_info->id, output_segment, (segment_sector++ * SECTOR_SIZE),
+		drive_info->data.start + file_info->low_cluster_number-2);
 
-		puts("Root Directory:");
-		for(; ((uint8_t *)current_file)[0] != 0; current_file++) { //does the sizeof for me
-			if(((uint8_t *)current_file)[0] == 0xe5) continue; //unused
-			if(current_file->attributes == LONG_FILENAME) continue;
-			if(current_file->attributes == VOLUME_ID) continue;
-			//filename
-			printf("= %8s.%3s           \r\n    ", current_file->name, current_file->name+8);  //need the padding to replace the "press to continue text"
-			printf("Attributes      => 0x%2x\r\n    ", current_file->attributes);
-			printf("Size    (bytes) => %d\r\n    ", current_file->size);
-			printf("Created   (UTC) => %2d:%2d:%2d %2d/%2d/%4d\r\n    ",
-				current_file->creation_time.value.hours,
-				current_file->creation_time.value.minutes,
-				current_file->creation_time.value.seconds*2,
-
-				current_file->creation_date.value.day,
-				current_file->creation_date.value.month,
-				current_file->creation_date.value.year + 1980
-			);
-
-			printf("Modified  (UTC) => %2d:%2d:%2d %2d/%2d/%4d\r\n    ",
-				current_file->modified_time.value.hours,
-				current_file->modified_time.value.minutes,
-				current_file->modified_time.value.seconds*2,
-
-				current_file->modified_date.value.day,
-				current_file->modified_date.value.month,
-				current_file->modified_date.value.year + 1980
-			);
-
-			print("\r\n");
-			print("Press any key to continue\r");
-			getchar();
-		}
+	while((current_value = _getFat12TableValue(fat_table, drive_info, current_cluster++)) < 0xff7) {
+		readSectorFar(drive_info->id, output_segment, (segment_sector++ * SECTOR_SIZE),
+			drive_info->data.start + current_value-2);
 	}
-*/
+
+	if(current_value == 0xff7) {
+		puts("Bad block in FAT");
+		halt();
+	}
+
+	return output_segment;
+}

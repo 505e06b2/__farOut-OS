@@ -5,6 +5,6 @@ void halt() {
 }
 
 void panic() {
-	printString("Kernel tried to exit, halting.\r\n");
+	puts("Kernel tried to exit, halting.");
 	halt();
 }

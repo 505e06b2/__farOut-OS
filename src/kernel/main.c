@@ -1,7 +1,10 @@
 #include "io.h"
 #include "fs.h"
 #include "utils.h"
-#include "stdint.h" //my version uses uin16_t as size_t
+#include "stdint.h" //my version uses uint16_t as size_t
+#include "stdlib.h" //itoa is unneeded, but NULL and the macros are useful
+#include "stdio.h" //printing
+
 
 /* Quick Inline ASM tips for BCC *
 - When specifying a number, put # before it -> #0x0a
@@ -41,6 +44,10 @@ Segments
 - For COM files, like this kernel, all segments (CS/DS/SS/ES) are the same
 */
 
+/*
+Depending on the size of the final kernel, there may be a need to split the stdlib into its own file
+*/
+
 asm (
 	"cli;"
 	//tiny memory model -> ds = ss = es = cs
@@ -56,43 +63,40 @@ asm (
 
 uint8_t boot_drive_id;
 
-asm ( //drives will be handled by the kernel, but this one is important to know
+asm ( //this will be important to know
 	"mov boot_drive_id, dl;"
 );
 
 void _start() {
-	bpb_t bpb_info;
 	file_info_t file_info;
+	drive_info_t boot_drive_info;
 	volatile uint8_t __far *byte;
 
 	clearScreen();
-	//printString("Booted into fiveOS\r\n");
-	//printf("Drive ID => 0x%2x\r\n", boot_drive_id);
+	printf("Drive ID => 0x%2x\r\n", boot_drive_id);
 
-	if(getBPB(boot_drive_id, &bpb_info) == NULL) {
-		printString("Could not parse boot sector!\r\n");
+	if(findDriveInfo(boot_drive_id, &boot_drive_info) == NULL) {
+		puts("Could not parse boot sector!");
 		halt();
 	}
-	//printString("Loaded BPB :)\r\n");
 
-	if(findFileInfo(boot_drive_id, &bpb_info, &file_info, "KERNEL  COM") == NULL) {
-		printString("Could not find \"KERNEL  COM\" on disk!\r\n");
-		//printString("This may have something to do with not differentiating HDD/Floppy\r\n");
+	if(findFileInfo(&boot_drive_info, "NOVEL   TXT", &file_info) == NULL) {
+		puts("Could not find \"NOVEL.TXT\" on disk!"); //may have something to do with the CHS of HDD/Floppy not being accounted for
 		halt();
 	}
 
 	printf("\"%8s.%3s\" - %d bytes\r\n", file_info.name, file_info.name+8, file_info.size);
-	copyFileContents(boot_drive_id, PHYSICAL_ADDRESS_TO_SEGMENT(0x00060000), file_info.low_cluster_number);
+	copyFileContents(&boot_drive_info, &file_info, PHYSICAL_ADDRESS_TO_SEGMENT(0x00060000));
 
 	byte = (volatile uint8_t __far *)(PHYSICAL_ADDRESS_TO_FAR_POINTER(0x00060000));
-	if(byte[0] == 0xeb && byte[1] == 0x3c && byte[2] == 0x90 && byte[3] == 0x6d) {
-		//printString("First bytes of boot drive read successfully\r\n");
-	} else {
-		printString("First bytes of boot drive not read properly!\r\n");
-		halt();
-	}
+	puts("Writing file to screen");
+	for(size_t i = 0; i < 6; i++) putchar(byte[i]);
+	printf("\r\n...\r\n");
+	for(size_t i = file_info.size-6; i < file_info.size; i++) putchar(byte[i]);
+	puts("\r\nDone");
 
-	//printString("...\r\n");
+
+	puts("No errors detected :)");
 	panic();
 }
 

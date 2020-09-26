@@ -1,8 +1,10 @@
 #ifndef _FS_H
 #define _FS_H
 
-#include "stdint.h"
 #include "io.h"
+#include "utils.h"
+#include "stdint.h"
+#include "stdlib.h" //itoa is unneeded, but NULL and the macros are useful
 #include "string.h"
 
 enum file_info_attributes {
@@ -15,9 +17,26 @@ enum file_info_attributes {
 	LONG_FILENAME = READ_ONLY | HIDDEN | SYSTEM | VOLUME_ID
 };
 
+typedef struct drive_info_s {
+	uint8_t id; //maybe add a serial to determine if replaced in the drive
+	struct {
+		uint8_t amount; //number of fats on the system - 2 for FAT12
+		uint16_t size; //in sectors - just for one
+		uint16_t start; //first sector
+	} fat;
+	struct {
+		uint16_t size;
+		uint16_t start;
+	} root_directory;
+	struct {
+		uint16_t start;
+	} data;
+} drive_info_t;
+
 #pragma pack(1)
 
-typedef struct bpb_s { //BIOS parameter block with bootstrap code removed
+typedef struct bpb_s { //BIOS parameter block - this fits perfectly over a sector
+	uint8_t jump[3];
 	char description[8];
 	uint16_t bytes_per_sector;
 	uint8_t sectors_per_cluster;
@@ -37,6 +56,8 @@ typedef struct bpb_s { //BIOS parameter block with bootstrap code removed
 	uint32_t volume_id;
 	char label[11];
 	char file_system[8];
+	uint8_t bootstrap[448];
+	uint16_t signature;
 } bpb_t;
 
 typedef union file_info_time_u {
@@ -85,9 +106,8 @@ typedef struct { //long filename
 
 #pragma pack()
 
-bpb_t *getBPB(uint8_t, bpb_t *);
-file_info_t *findFileInfo(uint8_t, bpb_t *, file_info_t *, const char *);
-uint16_t copyFileContents(uint8_t, uint16_t, uint16_t);
-void printRootDirectory(uint8_t, const bpb_t *); //USES SO MUCH SPACE
+drive_info_t *findDriveInfo(const uint8_t, drive_info_t *);
+file_info_t *findFileInfo(const drive_info_t *, const char *, file_info_t *);
+uint16_t copyFileContents(const drive_info_t *, const file_info_t *, uint16_t);
 
 #endif

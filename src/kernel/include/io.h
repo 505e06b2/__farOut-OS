@@ -1,47 +1,19 @@
 #ifndef _IO_H
 #define _IO_H
 
-#include <stdarg.h>
-
 #include "stdint.h"
-#include "stdlib.h"
-#include "ctype.h"
-#include "string.h"
 
 #define SECTOR_SIZE 512
 
-//USE THIS FOR HDD
-/*
-#define SECTORS_PER_TRACK 0b00111111 //qemu sets this to the max?
-#define NUMBER_OF_HEADS 0xff
-*/
+#define FLOPPY 1
 
-//FLOPPY SETTINGS
-#define SECTORS_PER_TRACK 18
-#define NUMBER_OF_HEADS 2
-#define H_x_SPT (NUMBER_OF_HEADS * SECTORS_PER_TRACK)
-
-typedef struct chs_s {
-	union {
-		uint16_t raw;
-		struct {
-			uint8_t sector: 6;
-			uint16_t cylinder: 10;
-		} segments;
-	} cx;
-	union {
-		uint8_t raw;
-		struct {
-			uint8_t head;
-		} segments;
-	} dh;
-} chs_t;
-
-void printChar(const char);
-void printString(const char __far *);
-
-char getChar();
-char __far *getString(char __far *);
+#if FLOPPY //(-fda)
+	#define SECTORS_PER_TRACK 18
+	#define NUMBER_OF_HEADS 2
+#else //HDD (-hda)
+	#define SECTORS_PER_TRACK 0b00111111 //this seems to be consistent for hdds
+	#define NUMBER_OF_HEADS 0xff
+#endif
 
 void clearScreen();
 

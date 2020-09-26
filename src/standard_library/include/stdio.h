@@ -1,7 +1,12 @@
 #ifndef _STDIO_H
 #define _STDIO_H
 
-#include "io.h" //replace with kernel.h when syscalls are complete
+#include <stdarg.h>
+
+#include "io.h"
+#include "stdlib.h" //itoa / NULL
+#include "ctype.h" //isdigit
+#include "string.h" //strlen
 
 void putchar(const char);
 void puts(const char __far *);

@@ -75,18 +75,15 @@ static uint16_t _getFat12TableValue(uint8_t *buffer, const drive_info_t *drive_i
 
 uint16_t copyFileContents(const drive_info_t *drive_info, const file_info_t *file_info, uint16_t output_segment) { //clusters being 512 bytes
 	uint8_t fat_table[SECTOR_SIZE];
-	uint16_t current_value;
+	uint16_t current_value = file_info->low_cluster_number;
 
 	uint16_t current_cluster = file_info->low_cluster_number;
 	size_t segment_sector = 0;
 
-	readSectorFar(drive_info->id, output_segment, (segment_sector++ * SECTOR_SIZE),
-		drive_info->data.start + file_info->low_cluster_number-2);
-
-	while((current_value = _getFat12TableValue(fat_table, drive_info, current_cluster++)) < 0xff7) {
+	do {
 		readSectorFar(drive_info->id, output_segment, (segment_sector++ * SECTOR_SIZE),
 			drive_info->data.start + current_value-2);
-	}
+	} while((current_value = _getFat12TableValue(fat_table, drive_info, current_cluster++)) < 0xff7);
 
 	if(current_value == 0xff7) {
 		puts("Bad block in FAT");

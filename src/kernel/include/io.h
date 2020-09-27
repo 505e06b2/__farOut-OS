@@ -5,6 +5,11 @@
 
 #define SECTOR_SIZE 512
 
+#define SEGMENT_TO_FAR_POINTER(x) ( (x & 0xffffffff) << 16 )
+#define PHYSICAL_ADDRESS_TO_FAR_POINTER(x) ( ((x & 0xffff0000) << 12) + (x & 0x0000ffff) )
+#define PHYSICAL_ADDRESS_TO_SEGMENT(x) ( x >> 4 )
+#define PHYSICAL_ADDRESS_TO_OFFSET(x) ( x & 0xf )
+
 #define FLOPPY 1
 
 #if FLOPPY //(-fda)

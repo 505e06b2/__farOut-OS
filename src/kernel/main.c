@@ -1,6 +1,8 @@
 #include "io.h"
 #include "fs.h"
+#include "task.h"
 #include "utils.h"
+
 #include "stdint.h" //my version uses uint16_t as size_t
 #include "stdlib.h" //itoa is unneeded, but NULL and the macros are useful
 #include "stdio.h" //printing
@@ -62,13 +64,13 @@ asm (
 );
 
 uint8_t boot_drive_id;
+task_t current_task;
 
 asm ( //this will be important to know
 	"mov boot_drive_id, dl;"
 );
 
 void _start() {
-	file_info_t file_info;
 	drive_info_t boot_drive_info;
 	volatile uint8_t __far *byte;
 
@@ -80,21 +82,31 @@ void _start() {
 		halt();
 	}
 
-	if(findFileInfo(&boot_drive_info, "NOVEL   TXT", &file_info) == NULL) {
-		puts("Could not find \"NOVEL.TXT\" on disk!"); //may have something to do with the CHS of HDD/Floppy not being accounted for
-		halt();
+	{
+		file_info_t file_info;
+
+		if(findFileInfo(&boot_drive_info, "NOVEL   TXT", &file_info) == NULL) {
+			puts("Could not find \"NOVEL.TXT\" on disk!"); //may have something to do with the CHS of HDD/Floppy not being accounted for
+			halt();
+		}
+
+		printf("\"%8s.%3s\" - %d bytes\r\n", file_info.name, file_info.name+8, file_info.size);
+		copyFileContents(&boot_drive_info, &file_info, PHYSICAL_ADDRESS_TO_SEGMENT(0x00060000));
+
+		byte = (volatile uint8_t __far *)(PHYSICAL_ADDRESS_TO_FAR_POINTER(0x00060000));
+		puts("Writing file to screen");
+		for(size_t i = 0; i < 6; i++) putchar(byte[i]);
+		printf("\r\n...\r\n");
+		for(size_t i = file_info.size-6; i < file_info.size; i++) putchar(byte[i]);
+		puts("\r\nDone");
 	}
 
-	printf("\"%8s.%3s\" - %d bytes\r\n", file_info.name, file_info.name+8, file_info.size);
-	copyFileContents(&boot_drive_info, &file_info, PHYSICAL_ADDRESS_TO_SEGMENT(0x00060000));
+	puts("Launching small program at \"7000:0000\"");
 
-	byte = (volatile uint8_t __far *)(PHYSICAL_ADDRESS_TO_FAR_POINTER(0x00060000));
-	puts("Writing file to screen");
-	for(size_t i = 0; i < 6; i++) putchar(byte[i]);
-	printf("\r\n...\r\n");
-	for(size_t i = file_info.size-6; i < file_info.size; i++) putchar(byte[i]);
-	puts("\r\nDone");
-
+	printf("Program printed: \"");
+	task_create(&boot_drive_info, PHYSICAL_ADDRESS_TO_SEGMENT(0x00050000), "SHELL   COM", &current_task);
+	task_run(&current_task);
+	printf("\"\r\n");
 
 	puts("No errors detected :)");
 	panic();

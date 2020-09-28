@@ -4,9 +4,7 @@
 #include "utils.h"
 
 #include "stdint.h" //my version uses uint16_t as size_t
-#include "stdlib.h" //itoa is unneeded, but NULL and the macros are useful
-#include "stdio.h" //printing
-
+#include "stdlib_farptrs.c"
 
 /* Quick Inline ASM tips for BCC *
 - When specifying a number, put # before it -> #0x0a
@@ -72,43 +70,37 @@ asm ( //this will be important to know
 
 void _start() {
 	drive_info_t boot_drive_info;
-	volatile uint8_t __far *byte;
 
 	clearScreen();
-	printf("Drive ID => 0x%2x\r\n", boot_drive_id);
 
 	if(findDriveInfo(boot_drive_id, &boot_drive_info) == NULL) {
-		puts("Could not parse boot sector!");
+		printString("Could not parse boot sector!");
 		halt();
 	}
 
 	{
 		file_info_t file_info;
 
-		if(findFileInfo(&boot_drive_info, "NOVEL   TXT", &file_info) == NULL) {
-			puts("Could not find \"NOVEL.TXT\" on disk!"); //may have something to do with the CHS of HDD/Floppy not being accounted for
+		if(findFileInfo(&boot_drive_info, "LIBC    COM", &file_info) == NULL) {
+			printString("Could not find \"LIBC.COM\" on disk!"); //may have something to do with the CHS of HDD/Floppy not being accounted for
 			halt();
 		}
 
-		printf("\"%8s.%3s\" - %d bytes\r\n", file_info.name, file_info.name+8, file_info.size);
 		copyFileContents(&boot_drive_info, &file_info, PHYSICAL_ADDRESS_TO_SEGMENT(0x00060000));
-
-		byte = (volatile uint8_t __far *)(PHYSICAL_ADDRESS_TO_FAR_POINTER(0x00060000));
-		puts("Writing file to screen");
-		for(size_t i = 0; i < 6; i++) putchar(byte[i]);
-		printf("\r\n...\r\n");
-		for(size_t i = file_info.size-6; i < file_info.size; i++) putchar(byte[i]);
-		puts("\r\nDone");
 	}
+	//stdlib should work now
+	printf("Drive ID => 0x%2x\r\n", boot_drive_id);
+	puts("TEXT String");
 
-	puts("Launching small program at \"7000:0000\"");
+	puts("Launching small program at \"5000:0000\"");
+
+	task_create(&boot_drive_info, 0x5000, "SHELL   COM", &current_task);
 
 	printf("Program printed: \"");
-	task_create(&boot_drive_info, PHYSICAL_ADDRESS_TO_SEGMENT(0x00050000), "SHELL   COM", &current_task);
 	task_run(&current_task);
 	printf("\"\r\n");
 
-	puts("No errors detected :)");
+	printf("No errors detected :)\r\n");
 	panic();
 }
 

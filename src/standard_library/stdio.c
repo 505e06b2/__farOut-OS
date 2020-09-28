@@ -2,12 +2,12 @@
 
 static void _print(const char __far *str) {
 	while(*str) {
-		putchar(*str); //replace with kernel call
+		putchar(*str);
 		str++;
 	}
 }
 
-void putchar(const char c) {
+void __far putchar(const char c) {
 	asm volatile (
 		"mov ah, 0x0e;"  //teletype print
 		"mov al, %0;"
@@ -19,17 +19,17 @@ void putchar(const char c) {
 	);
 }
 
-void puts(const char __far *str) {
+void __far puts(const char *str) {
 	_print(str); //replace with kernel call
 	putchar('\r');
 	putchar('\n');
 }
 
-void printf(const char __far *format, ...) {
-	char text_buffer[30]; //for use with expanding chars
+void __far printf(const char *format, ...) {
+	char text_buffer[30]; //for use with converting ints
 	int fmt_add;
 	int wanted_size;
-	char __far *expanded_start;
+	char *expanded_start;
 
 	va_list args;
     va_start(args, format);
@@ -50,6 +50,7 @@ void printf(const char __far *format, ...) {
 				fmt_add = 2;
 				wanted_size = *(format+1) - '0'; // -'0' to turn the char into an int
 			}
+
 
 			switch(*(format + fmt_add)) {
 				case 'd':
@@ -88,7 +89,7 @@ void printf(const char __far *format, ...) {
 }
 
 
-char getchar() {
+char __far getchar() {
 	char ret;
 	asm volatile (
 		"mov ah, 0x00;"
@@ -101,8 +102,8 @@ char getchar() {
 	return ret;
 }
 
-char __far *gets(char __far *ret) {
-	char __far *ptr = ret;
+char * __far gets(char *ret) {
+	char *ptr = ret;
 	char current_char;
 
 	while((current_char = getchar()) != '\r') {

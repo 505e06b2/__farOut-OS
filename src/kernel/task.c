@@ -4,7 +4,7 @@ task_t *task_create(const drive_info_t *drive_info, const uint16_t requested_seg
 	file_info_t file_info;
 
 	if(findFileInfo(drive_info, filename, &file_info) == NULL) {
-		printf("Could not find \"%s\" on disk!\r\n", filename);
+		//printf("Could not find \"%s\" on disk!\r\n", filename);
 		halt();
 	}
 
@@ -18,6 +18,6 @@ task_t *task_create(const drive_info_t *drive_info, const uint16_t requested_seg
 }
 
 void task_run(task_t *task) {
-	void __far (*program)() = SEGMENT_TO_FAR_POINTER(task->segment_location);
+	void __far (*program)() = (volatile void __far *)SEGMENT_TO_FAR_POINTER(task->segment_location);
 	program();
 }

@@ -4,8 +4,6 @@
 #include "io.h"
 #include "utils.h"
 #include "stdint.h"
-#include "stdlib.h" //itoa is unneeded, but NULL and the macros are useful
-#include "string.h"
 
 enum file_info_attributes {
 	READ_ONLY = 0x01,

@@ -1,7 +1,5 @@
 #include "fs.h"
 
-#include "stdio.h"
-
 drive_info_t *findDriveInfo(const uint8_t drive_id, drive_info_t *drive_info) {
 	bpb_t bootsector;
 	readSector(drive_id, (void *)&bootsector, 0);
@@ -42,8 +40,8 @@ file_info_t *findFileInfo(const drive_info_t *drive_info, const char *filename, 
 					break;
 			}
 
-			if(strncmp(filename, current_file[i].name, 11) == 0) {
-				memcpy(file_info, &current_file[i], sizeof(file_info_t));
+			if(compareStringN(filename, current_file[i].name, 11) == 0) {
+				copyMemory(file_info, &current_file[i], sizeof(file_info_t));
 				return file_info;
 			}
 		}
@@ -86,7 +84,7 @@ uint16_t copyFileContents(const drive_info_t *drive_info, const file_info_t *fil
 	} while((current_value = _getFat12TableValue(fat_table, drive_info, current_cluster++)) < 0xff7);
 
 	if(current_value == 0xff7) {
-		puts("Bad block in FAT");
+		//puts("Bad block in FAT");
 		halt();
 	}
 

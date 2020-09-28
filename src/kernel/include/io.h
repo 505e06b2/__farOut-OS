@@ -4,6 +4,7 @@
 #include "stdint.h"
 
 #define SECTOR_SIZE 512
+#define NULL 0
 
 #define SEGMENT_TO_FAR_POINTER(x) ( (x & 0xffffffff) << 16 )
 #define PHYSICAL_ADDRESS_TO_FAR_POINTER(x) ( ((x & 0xffff0000) << 12) + (x & 0x0000ffff) )
@@ -21,6 +22,9 @@
 #endif
 
 void clearScreen();
+void printString(const char __far *);
+int compareStringN(const volatile char __far *, const volatile char __far *, size_t); //strncmp
+volatile void __far *copyMemory(volatile void __far *, const volatile void __far *, size_t); //memcpy
 
 uint8_t *readSector(uint8_t, uint8_t *, uint16_t);
 void readSectorFar(uint8_t, uint16_t, uint16_t, uint16_t);

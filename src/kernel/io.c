@@ -1,7 +1,5 @@
 #include "io.h"
 
-#include "stdio.h"
-
 void clearScreen() {
 	asm volatile (
 		"mov ah, 0x00;"
@@ -11,6 +9,35 @@ void clearScreen() {
 		: //in
 		: "ax" //clobber
 	);
+}
+
+void printString(const char __far *str) {
+	while(*str) {
+		asm volatile (
+			"mov ah, 0x0e;"  //teletype print
+			"mov al, %0;"
+			"xor bx, bx;"     //write to 0th page
+			"int 0x10;"
+			:
+			: "r" (*str++)
+			: "ax", "bx"
+		);
+	}
+}
+
+int compareStringN(const volatile char __far *original, const volatile char __far *compare, size_t max_length) {
+	for(size_t i = 0; i < max_length && original[i] && compare[i]; i++) { //ensure '\0' is checked
+		if(original[i] > compare[i]) return 1;
+		if(original[i] < compare[i]) return -1;
+	}
+	return 0;
+}
+
+volatile void __far *copyMemory(volatile void __far *destination, const volatile void __far *source, size_t number_of_bytes) {
+	for(size_t i = 0; i < number_of_bytes; i++) {
+		((volatile uint8_t __far *)destination)[i] = ((const volatile uint8_t __far *)source)[i];
+	}
+	return destination;
 }
 
 uint8_t *readSector(uint8_t drive_id, uint8_t *buffer, uint16_t lba) {

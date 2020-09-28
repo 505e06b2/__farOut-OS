@@ -1,6 +1,6 @@
 #include "string.h"
 
-size_t strlen(const volatile char __far *str) {
+size_t strlen(const volatile char *str) { //__far?
 	size_t ret = 0;
 	while(*str) {
 		str++;
@@ -9,7 +9,7 @@ size_t strlen(const volatile char __far *str) {
 	return ret;
 }
 
-int strncmp(const volatile char __far *original, const volatile char __far *compare, size_t max_length) {
+int __far strncmp(const volatile char *original, const volatile char *compare, size_t max_length) {
 	for(size_t i = 0; i < max_length && original[i] && compare[i]; i++) { //ensure '\0' is checked
 		if(original[i] > compare[i]) return 1;
 		if(original[i] < compare[i]) return -1;
@@ -17,9 +17,9 @@ int strncmp(const volatile char __far *original, const volatile char __far *comp
 	return 0;
 }
 
-volatile void __far *memcpy(volatile void __far *destination, const volatile void __far *source, size_t number_of_bytes) {
+void * __far memcpy(void *destination, const void *source, size_t number_of_bytes) {
 	for(size_t i = 0; i < number_of_bytes; i++) {
-		((volatile uint8_t __far *)destination)[i] = ((const volatile uint8_t __far *)source)[i];
+		((uint8_t *)destination)[i] = ((const uint8_t *)source)[i];
 	}
 	return destination;
 }

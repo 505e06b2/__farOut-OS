@@ -3,9 +3,9 @@
 
 #include "stdint.h"
 
-size_t strlen(const volatile char __far *);
-int strncmp(const volatile char __far *, const volatile char __far *, size_t);
+size_t strlen(const volatile char *); //make __far at some point - need to understand how things work better
+int __far strncmp(const volatile char *, const volatile char *, size_t);
 
-volatile void __far *memcpy(volatile void __far *, const volatile void __far *, size_t);
+void * __far memcpy(void *, const void *, size_t);
 
 #endif

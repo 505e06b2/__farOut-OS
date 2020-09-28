@@ -36,6 +36,9 @@ $(START): src/start.c
 $(STDLIB_OUT): $(STANDARD_LIB_OBJS)
 	$(LD) $(LDFLAGS) -Map=stdlib_symbols.map $^ -o $@
 
+src/stdlib_farptrs.c: $(STDLIB_OUT)
+	./generate_farptrs.py
+
 $(KERNEL_OUT): $(KERNEL_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
@@ -85,3 +88,4 @@ clean:
 	#rm -f $(FLOPPY)
 	rm -f obj/*
 	rm -f floppy_contents/*.com
+	rm -f src/stdlib_farptrs.c

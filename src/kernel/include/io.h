@@ -11,15 +11,10 @@
 #define PHYSICAL_ADDRESS_TO_SEGMENT(x) ( x >> 4 )
 #define PHYSICAL_ADDRESS_TO_OFFSET(x) ( x & 0xf )
 
-#define FLOPPY 1
-
-#if FLOPPY //(-fda)
-	#define SECTORS_PER_TRACK 18
-	#define NUMBER_OF_HEADS 2
-#else //HDD (-hda)
-	#define SECTORS_PER_TRACK 0b00111111 //this seems to be consistent for hdds
-	#define NUMBER_OF_HEADS 0xff
-#endif
+#define FLOPPY_SECTORS_PER_TRACK 18
+#define FLOPPY_NUMBER_OF_HEADS 2
+#define HDD_SECTORS_PER_TRACK 0b00111111 //this seems to be consistent for hdds
+#define HDD_NUMBER_OF_HEADS 0xff
 
 void clearScreen();
 void printString(const char __far *);

@@ -61,7 +61,7 @@ void __far printf(const char *format, ...) {
 					break;
 
 				case 'x':
-					expanded_start = itoa(va_arg(args, int16_t), text_buffer, 16);
+					expanded_start = itoa(va_arg(args, uint16_t), text_buffer, 16);
 					for(int i = wanted_size - strlen(expanded_start); i > 0; i--) putchar('0');
 					_print(expanded_start);
 					format += fmt_add;

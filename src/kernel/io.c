@@ -47,6 +47,14 @@ uint8_t *readSector(uint8_t drive_id, uint8_t *buffer, uint16_t lba) {
 }
 
 void readSectorFar(uint8_t drive_id, uint16_t segment, uint16_t pointer, uint16_t lba) {
+	uint16_t sectors_per_track = FLOPPY_SECTORS_PER_TRACK;
+	uint16_t number_of_heads = FLOPPY_NUMBER_OF_HEADS;
+
+	if(drive_id >= 0x80) {
+		sectors_per_track = HDD_SECTORS_PER_TRACK;
+		number_of_heads = HDD_NUMBER_OF_HEADS;
+	}
+
 	asm volatile (
 		"mov ax, %2;" //LBA
 		"mov es, %0;" //set segment
@@ -76,7 +84,7 @@ void readSectorFar(uint8_t drive_id, uint16_t segment, uint16_t pointer, uint16_
 		"mov bx, %1;" //set pointer
 		"int 0x13;"
 		:
-		: "r" (segment), "g" (pointer), "g" (lba), "g" (SECTORS_PER_TRACK), "g" (NUMBER_OF_HEADS), "g" (drive_id)
+		: "r" (segment), "g" (pointer), "g" (lba), "g" (sectors_per_track), "g" (number_of_heads), "g" (drive_id)
 		: "ax", "bx", "cx", "dx", "cc", "memory", "es"
 	);
 }

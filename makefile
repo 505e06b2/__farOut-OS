@@ -34,9 +34,9 @@ $(START): src/start.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(STDLIB_OUT): $(STANDARD_LIB_OBJS)
-	$(LD) $(LDFLAGS) -Map stdlib_symbols.map $^ -o $@
+	$(LD) $(LDFLAGS) -Map=stdlib_symbols.map $^ -o $@
 
-$(KERNEL_OUT): $(KERNEL_OBJS) $(STDLIB_PTRS)
+$(KERNEL_OUT): $(KERNEL_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 $(SHELL_OUT): $(START) $(SHELL_OBJS)

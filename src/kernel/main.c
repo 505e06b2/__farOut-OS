@@ -88,7 +88,7 @@ void _start() {
 
 		copyFileContents(&boot_drive_info, &file_info, PHYSICAL_ADDRESS_TO_SEGMENT(0x00060000));
 	}
-	//stdlib should work now
+	//stdlib should work at this point
 	printf("Drive ID => 0x%2x\r\n", boot_drive_id);
 	puts("TEXT String");
 

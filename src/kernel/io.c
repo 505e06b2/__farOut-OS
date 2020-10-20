@@ -1,6 +1,6 @@
 #include "io.h"
 
-void clearScreen() {
+void clearScreen() { //this just sets the video mode to 80x25 colour
 	asm volatile (
 		"mov ah, 0x00;"
 		"mov al, 0x03;"

@@ -46,7 +46,7 @@ void __far printf(const char *format, ...) {
 					continue; //skip the rest
 			}
 
-			if(isdigit(*(format+1))) {
+			if(internal_isdigit(*(format+1))) {
 				fmt_add = 2;
 				wanted_size = *(format+1) - '0'; // -'0' to turn the char into an int
 			}
@@ -54,15 +54,15 @@ void __far printf(const char *format, ...) {
 
 			switch(*(format + fmt_add)) {
 				case 'd':
-					expanded_start = itoa(va_arg(args, int16_t), text_buffer, 10);
-					for(int i = wanted_size - strlen(expanded_start); i > 0; i--) putchar('0');
+					expanded_start = internal_itoa(va_arg(args, int16_t), text_buffer, 10);
+					for(int i = wanted_size - internal_strlen(expanded_start); i > 0; i--) putchar('0');
 					_print(expanded_start);
 					format += fmt_add;
 					break;
 
 				case 'x':
-					expanded_start = itoa(va_arg(args, uint16_t), text_buffer, 16);
-					for(int i = wanted_size - strlen(expanded_start); i > 0; i--) putchar('0');
+					expanded_start = internal_itoa(va_arg(args, uint16_t), text_buffer, 16);
+					for(int i = wanted_size - internal_strlen(expanded_start); i > 0; i--) putchar('0');
 					_print(expanded_start);
 					format += fmt_add;
 					break;

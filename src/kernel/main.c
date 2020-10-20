@@ -73,34 +73,34 @@ void _start() {
 
 	clearScreen();
 
+	printString("Reading boot sector\r\n");
 	if(findDriveInfo(boot_drive_id, &boot_drive_info) == NULL) {
 		printString("Could not parse boot sector!");
 		halt();
 	}
 
+	printString("Attempting to find LIBC.COM on disk\r\n");
 	{
 		file_info_t file_info;
 
 		if(findFileInfo(&boot_drive_info, "LIBC    COM", &file_info) == NULL) {
-			printString("Could not find \"LIBC.COM\" on disk!"); //may have something to do with the CHS of HDD/Floppy not being accounted for
+			printString("Could not find \"LIBC.COM\"!"); //may have something to do with the CHS of HDD/Floppy not being accounted for
 			halt();
 		}
 
 		copyFileContents(&boot_drive_info, &file_info, PHYSICAL_ADDRESS_TO_SEGMENT(0x00060000));
 	}
-	//stdlib should work at this point
-	printf("Drive ID => 0x%2x\r\n", boot_drive_id);
-	puts("TEXT String");
+	printString("LIBC copied to 6000:0000\r\n");
 
-	puts("Launching small program at \"5000:0000\"");
+	//stdlib should work at this point
+	printf("Drive ID: 0x%2x\r\n", boot_drive_id);
+
+	puts("Loading shell at \"5000:0000\"");
 
 	task_create(&boot_drive_info, 0x5000, "SHELL   COM", &current_task);
-
-	printf("Program printed: \"");
 	task_run(&current_task);
-	printf("\"\r\n");
 
-	printf("No errors detected :)\r\n");
+	//clearScreen();
 	panic();
 }
 

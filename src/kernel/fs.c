@@ -40,7 +40,7 @@ file_info_t *findFileInfo(const drive_info_t *drive_info, const char *filename, 
 					break;
 			}
 
-			if(compareStringN(filename, current_file[i].name, 11) == 0) {
+			if(compareStringN(filename, (char *)current_file[i].name, 11) == 0) {
 				copyMemory(file_info, &current_file[i], sizeof(file_info_t));
 				return file_info;
 			}

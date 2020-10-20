@@ -3,7 +3,7 @@
 //const char hex_charset[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 //Make sure to use the return value, since the start of the buffer may not be filled
-char *itoa(uint16_t value, char *buffer, uint8_t base) {
+char * __far itoa(uint16_t value, char *buffer, uint8_t base) {
 	size_t index;
 	char hex_charset[16];
 
@@ -40,4 +40,8 @@ char *itoa(uint16_t value, char *buffer, uint8_t base) {
 	);*/
 
 	return &buffer[index];
+}
+
+char *internal_itoa(uint16_t value, char *buffer, uint8_t base) {
+	return itoa(value, buffer, base);
 }

@@ -1,6 +1,11 @@
 #ifndef _CTYPE_H
 #define _CTYPE_H
 
-int isdigit(int); //make __far at some point - need to understand how things work better
+int __far isdigit(int);
+int internal_isdigit(int);
+
+int __far isalpha(int);
+
+int __far toupper(int);
 
 #endif

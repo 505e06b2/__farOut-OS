@@ -6,6 +6,7 @@
 
 #define NULL 0
 
-char *itoa(uint16_t, char *, uint8_t); //need to make this far at some point
+char * __far itoa(uint16_t, char *, uint8_t);
+char * internal_itoa(uint16_t, char *, uint8_t);
 
 #endif

@@ -76,8 +76,8 @@ typedef union file_info_date_u {
 	} value;
 } file_info_date_t;
 
-typedef struct { //this will need tweaked if wanting to parse better
-	char name[11]; // 8.3
+typedef struct file_info_s {
+	uint8_t name[11]; // 8.3 -> no null terminator
 	uint8_t attributes;
 	uint8_t reserved;
 	uint8_t creation_time_tenths_s;
@@ -91,9 +91,9 @@ typedef struct { //this will need tweaked if wanting to parse better
 	uint32_t size;
 } file_info_t;
 
-typedef struct { //long filename
+typedef struct long_file_info_s { //long filename
 	uint8_t order;
-	uint16_t first_segment[5]; //change to wchar_t if supported
+	uint16_t first_segment[5]; //change to wchar_t at some point?
 	uint8_t attributes; //will always be 0x0F for long filename
 	uint8_t entry_type;
 	uint8_t checksum;

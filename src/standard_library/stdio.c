@@ -54,14 +54,14 @@ void __far printf(const char *format, ...) {
 
 			switch(*(format + fmt_add)) {
 				case 'd':
-					expanded_start = internal_itoa(va_arg(args, int16_t), text_buffer, 10);
+					expanded_start = internal_itoa(va_arg(args, int), text_buffer, 10);
 					for(int i = wanted_size - internal_strlen(expanded_start); i > 0; i--) putchar('0');
 					_print(expanded_start);
 					format += fmt_add;
 					break;
 
 				case 'x':
-					expanded_start = internal_itoa(va_arg(args, uint16_t), text_buffer, 16);
+					expanded_start = internal_itoa(va_arg(args, unsigned int), text_buffer, 16);
 					for(int i = wanted_size - internal_strlen(expanded_start); i > 0; i--) putchar('0');
 					_print(expanded_start);
 					format += fmt_add;

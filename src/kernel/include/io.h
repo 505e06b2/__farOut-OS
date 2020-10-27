@@ -1,10 +1,10 @@
 #ifndef _IO_H
 #define _IO_H
 
-#include "stdint.h"
+#include <stdint.h>
+#include <stddef.h>
 
 #define SECTOR_SIZE 512
-#define NULL 0
 
 #define SEGMENT_TO_FAR_POINTER(x) ( (x & 0xffffffff) << 16 )
 #define PHYSICAL_ADDRESS_TO_FAR_POINTER(x) ( ((x & 0xffff0000) << 12) + (x & 0x0000ffff) )

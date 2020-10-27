@@ -1,7 +1,9 @@
 #ifndef _STRING_H
 #define _STRING_H
 
-#include "stdint.h"
+#include <stdint.h>
+#include <stddef.h>
+
 #include "stdlib.h"
 
 size_t __far strlen(const volatile char *);

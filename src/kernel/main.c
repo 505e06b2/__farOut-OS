@@ -1,10 +1,11 @@
+#include <stdint.h>
+
 #include "io.h"
 #include "fs.h"
 #include "task.h"
 #include "utils.h"
 
-#include "stdint.h" //my version uses uint16_t as size_t
-#include "stdlib_farptrs.c"
+#include "stdio.h"
 
 /* Quick Inline ASM tips for BCC *
 - When specifying a number, put # before it -> #0x0a

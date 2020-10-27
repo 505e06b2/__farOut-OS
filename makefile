@@ -20,7 +20,7 @@ CC=ia16-elf-gcc
 
 #Optimising
 #gc-sections doesnt work and may not be very good when freestanding, it also seems like this compiler doesn't have LTO
-CFLAGS=-Isrc/standard_library/include/ -Isrc/ -ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -Os -MMD -MP
+CFLAGS=-ffreestanding -Wall -march=i8086 -mtune=i8086 -masm=intel -mcmodel=tiny -std=gnu99 -Os -MMD -MP
 LDFLAGS=--oformat=binary -m i386msdos
 
 .PHONY: run init clean debug_kernel fake86
@@ -35,8 +35,6 @@ $(START): src/start.c
 
 $(STDLIB_OUT): $(STANDARD_LIB_OBJS)
 	$(LD) $(LDFLAGS) -Map=stdlib_symbols.map $^ -o $@
-
-src/stdlib_farptrs.c: $(STDLIB_OUT)
 	./generate_farptrs.py
 
 $(KERNEL_OUT): $(KERNEL_OBJS)
@@ -45,14 +43,14 @@ $(KERNEL_OUT): $(KERNEL_OBJS)
 $(SHELL_OUT): $(START) $(SHELL_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
-obj/kernel_%.o: src/kernel/%.c src/stdlib_farptrs.c
-	$(CC) -Isrc/kernel/include/ $(CFLAGS) -c $< -o $@
+obj/kernel_%.o: src/kernel/%.c $(STDLIB_OUT)
+	$(CC) $(CFLAGS) -Isrc/kernel/include/ -Isrc/generated_includes/ -c $< -o $@
 
-obj/shell_%.o: src/shell/%.c src/stdlib_farptrs.c
-	$(CC) $(CFLAGS) -c $< -o $@
+obj/shell_%.o: src/shell/%.c $(STDLIB_OUT)
+	$(CC) $(CFLAGS) -Isrc/generated_includes/ -c $< -o $@
 
 obj/lib_%.o: src/standard_library/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -Isrc/standard_library/include/ -c $< -o $@
 
 #depenancies
 -include $(KERNEL_OBJS:%.o=%.d)
@@ -88,4 +86,4 @@ clean:
 	#rm -f $(FLOPPY)
 	rm -f obj/*
 	rm -f floppy_contents/*.com
-	rm -f src/stdlib_farptrs.c
+	rm -f src/generated_includes/*

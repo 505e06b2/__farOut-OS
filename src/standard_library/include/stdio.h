@@ -2,7 +2,7 @@
 #define _STDIO_H
 
 #include <stdarg.h>
-#include "stdint.h"
+#include <stdint.h>
 
 #include "stdlib.h" //itoa
 #include "ctype.h" //isdigit

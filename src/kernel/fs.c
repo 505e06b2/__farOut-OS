@@ -98,13 +98,15 @@ int __far mapFileToSegment(uint8_t drive_id, const char *filename, uint16_t segm
 	drive_info_t drive_info;
 	file_info_t file_info;
 
+	//printChar('T');
+
 	if(findDriveInfo(drive_id, &drive_info) == NULL) {
-		//printString("Failed to find drive info");
+		//printChar('D');
 		return 1;
 	}
 
 	if(findFileInfo(&drive_info, filename, &file_info) == NULL) {
-		//printString("Failed to find file");
+		//printChar('F');
 		return 1;
 	}
 

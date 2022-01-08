@@ -108,7 +108,6 @@ void _start() {
 	task_t current_task;
 	{
 		start_data_t start_data;
-		setMemory(&start_data, 65, sizeof(start_data_t));
 		start_data.boot_drive_id = boot_drive_id;
 		start_data.argc = 3;
 		copyMemory(start_data.argv, "FAKE ARGUMENTS FAKE ARGUMENTS FAKE", 33);

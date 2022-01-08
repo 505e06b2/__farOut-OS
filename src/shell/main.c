@@ -17,11 +17,11 @@ void main(int argc, char argv) { //as all strings are stored sequentially, acces
 	char *str;
 	size_t command_len;
 
-	if(segmentmap(0x00, "NOVEL   TXT", 0x4000)) {
+	if(segmentmap(start_data->boot_drive_id, "NOVEL   TXT", 0x1000)) {
 		puts("Failed to read Novel.txt");
 	} else {
-		printf("Copied novel to 4000:0000\r\n");
-		volatile char __far *c = (volatile char __far *)0x40000000;
+		printf("Copied novel to 1000:0000\r\n");
+		volatile char __far *c = (volatile char __far *)0x10000000;
 		//putchar(*c);
 		//for(;*c; c++) putchar(*c);
 	}

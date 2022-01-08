@@ -15,7 +15,7 @@ void __far putchar(const char c) {
 		"int 0x10;"
 		:
 		: "r" (c)
-		: "ax", "bx"
+		: "ax", "bx", "memory"
 	);
 }
 

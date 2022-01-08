@@ -1,9 +1,24 @@
 #!/usr/bin/env python3
 
-base_address = 0x60000000 #this is a far pointer address, NOT absolute
-symbol_map_file = "stdlib_symbols.map"
-stdlib_files = "src/standard_library/include/*.h"
-out_path = "src/generated_includes/"
+import sys
+
+if sys.argv[1] == "stdlib":
+	base_address = 0x60000000 #this is a far pointer address, NOT absolute
+	symbol_map_file = "stdlib_symbols.map"
+	stdlib_files = "src/standard_library/include/*.h"
+	out_path = "src/generated_stdlib_includes/"
+	replace = "obj/lib_"
+
+elif sys.argv[1] == "kernel":
+	base_address = 0x70000000 #this is a far pointer address, NOT absolute
+	symbol_map_file = "kernel_symbols.map"
+	stdlib_files = "src/kernel/include/*.h"
+	out_path = "src/generated_kernel_includes/"
+	replace = "obj/kernel_"
+
+else:
+	raise sys.argv[1] + ": Not a valid argument"
+
 known_symbols = {} #structure to be: Root -> Base name -> symbol
 
 class Symbol:
@@ -38,19 +53,24 @@ for file_name in glob.glob(stdlib_files):
 check = False
 with open(symbol_map_file, "r") as f:
 	for x in f.readlines():
-		if x.startswith(" .text "):
+		if x.startswith(" .text"):
 			check = True
-			current_file = x.split()[-1].replace(".o", ".h").replace("obj/lib_","") #replace with more if needed
+			current_file = x.split()[-1].replace(".o", ".h").replace(replace,"") #replace with more if needed
 			continue
 		elif x.startswith(" *(.data)"):
 			break
 
 		if check:
 			o = x.split()
-			if len(o) == 2 and o[1] in known_symbols[current_file].keys():
-				known_symbols[current_file][o[1]].offset = int(o[0], base=16)
+			try:
+				if len(o) == 2 and o[1] in known_symbols[current_file].keys():
+					known_symbols[current_file][o[1]].offset = int(o[0], base=16)
+			except KeyError:
+				pass
 
 for basename in known_symbols:
+	if len(known_symbols[basename]) < 1:
+		continue
 	with open(os.path.join(out_path, basename), "w") as f:
 		guard = basename.upper().replace(".", "_")
 		f.write("#ifndef _%s\n#define _%s\n\n#include <stdint.h>\n#include <stddef.h>\n\n" % (guard, guard))

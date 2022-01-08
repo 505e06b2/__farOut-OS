@@ -35,22 +35,23 @@ $(START): src/start.c
 
 $(STDLIB_OUT): $(STANDARD_LIB_OBJS)
 	$(LD) $(LDFLAGS) -Map=stdlib_symbols.map $^ -o $@
-	./generate_farptrs.py
+	./generate_farptrs.py stdlib
 
 $(KERNEL_OUT): $(KERNEL_OBJS)
-	$(LD) $(LDFLAGS) $^ -o $@
+	$(LD) $(LDFLAGS) -Map=kernel_symbols.map $^ -o $@
+	./generate_farptrs.py kernel
 
 $(SHELL_OUT): $(START) $(SHELL_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
-obj/kernel_%.o: src/kernel/%.c $(STDLIB_OUT)
-	$(CC) $(CFLAGS) -Isrc/kernel/include/ -Isrc/generated_includes/ -c $< -o $@
+obj/kernel_%.o: src/kernel/%.c
+	$(CC) $(CFLAGS) -Isrc/ -Isrc/kernel/include/ -c $< -o $@
 
-obj/shell_%.o: src/shell/%.c $(STDLIB_OUT)
-	$(CC) $(CFLAGS) -Isrc/generated_includes/ -c $< -o $@
+obj/shell_%.o: src/shell/%.c $(STDLIB_OUT) $(KERNEL_OUT)
+	$(CC) $(CFLAGS) -Isrc/ -Isrc/generated_stdlib_includes/ -Isrc/generated_kernel_includes/ -c $< -o $@
 
-obj/lib_%.o: src/standard_library/%.c
-	$(CC) $(CFLAGS) -Isrc/standard_library/include/ -c $< -o $@
+obj/lib_%.o: src/standard_library/%.c $(KERNEL_OUT)
+	$(CC) $(CFLAGS) -Isrc/standard_library/include/ -Isrc/generated_kernel_includes/ -c $< -o $@
 
 #depenancies
 -include $(KERNEL_OBJS:%.o=%.d)
@@ -66,7 +67,7 @@ run: all
 	sudo mount -o loop $(FLOPPY) /mnt/
 	sudo cp floppy_contents/* /mnt/
 	sudo umount /mnt/
-	qemu-system-i386 -fda $(FLOPPY)
+	qemu-system-i386 -monitor stdio -m 1M -drive format=raw,index=0,if=floppy,file=$(FLOPPY)
 
 fake86: all
 	dd conv=notrunc if=$(BOOT) of=$(FLOPPY) bs=1 skip=62 seek=62
@@ -74,7 +75,6 @@ fake86: all
 	sudo cp floppy_contents/* /mnt/
 	sudo umount /mnt/
 	fake86 -fd0 $(FLOPPY)
-
 
 debug_kernel: $(KERNEL_OUT)
 	ndisasm -b 16 -p intel $<
@@ -86,4 +86,5 @@ clean:
 	#rm -f $(FLOPPY)
 	rm -f obj/*
 	rm -f floppy_contents/*.com
-	rm -f src/generated_includes/*
+	rm -f src/generated_stdlib_includes/*
+	rm -f src/generated_kernel_includes/*

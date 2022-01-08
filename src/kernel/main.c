@@ -5,8 +5,6 @@
 #include "task.h"
 #include "utils.h"
 
-#include "stdio.h"
-
 /* Quick Inline ASM tips for BCC *
 - When specifying a number, put # before it -> #0x0a
 - When using an interrupt, don't use #
@@ -45,8 +43,19 @@ Segments
 - For COM files, like this kernel, all segments (CS/DS/SS/ES) are the same
 */
 
-/*
-Depending on the size of the final kernel, there may be a need to split the stdlib into its own file
+/* NOTES ON __FAR
+  If it's the same keyword for a far return pointer, and the function itself, it can be hard for both the compiler and user to discern
+  Either have a typedef for far pointer, or add a new keyword specifically for far functions
+*/
+
+/* Memory Layout
+  7000:0000 Kernel
+  6000:0000 Libc
+  5000:0000 Shell
+  4000:0000 *
+  3000:0000 *
+  2000:0000 *
+  1000:0000 Scratch (read files here)
 */
 
 asm (
@@ -62,19 +71,18 @@ asm (
 	"sti;"
 );
 
+//ONLY ACCESS BY ABSOLUTE ADDRESS (2022: ?)
 uint8_t boot_drive_id;
-task_t current_task;
 
 asm ( //this will be important to know
 	"mov boot_drive_id, dl;"
 );
 
 void _start() {
-	drive_info_t boot_drive_info;
-
 	clearScreen();
 
 	printString("Reading boot sector\r\n");
+	drive_info_t boot_drive_info;
 	if(findDriveInfo(boot_drive_id, &boot_drive_info) == NULL) {
 		printString("Could not parse boot sector!");
 		halt();
@@ -94,11 +102,20 @@ void _start() {
 	printString("LIBC copied to 6000:0000\r\n");
 
 	//stdlib should work at this point
-	printf("Drive ID: 0x%2x\r\n", boot_drive_id);
+	//printf("Drive ID: 0x%2x\r\n", boot_drive_id);
 
-	puts("Loading shell at \"5000:0000\"");
+	printString("Loading shell at \"5000:0000\"\r\n");
+	task_t current_task;
+	{
+		start_data_t start_data;
+		setMemory(&start_data, 65, sizeof(start_data_t));
+		start_data.boot_drive_id = boot_drive_id;
+		start_data.argc = 3;
+		copyMemory(start_data.argv, "FAKE ARGUMENTS FAKE ARGUMENTS FAKE", 33);
 
-	task_create(&boot_drive_info, 0x5000, "SHELL   COM", &current_task);
+		task_create(&boot_drive_info, 0x5000, "SHELL   COM", &start_data, &current_task);
+	}
+
 	task_run(&current_task);
 
 	//clearScreen();

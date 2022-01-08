@@ -11,18 +11,20 @@ void clearScreen() { //this just sets the video mode to 80x25 colour
 	);
 }
 
+void printChar(const char c) {
+	asm volatile (
+		"mov ah, 0x0e;"  //teletype print
+		"mov al, %0;"
+		"xor bx, bx;"     //write to 0th page
+		"int 0x10;"
+		:
+		: "r" (c)
+		: "ax", "bx"
+	);
+}
+
 void printString(const char __far *str) {
-	while(*str) {
-		asm volatile (
-			"mov ah, 0x0e;"  //teletype print
-			"mov al, %0;"
-			"xor bx, bx;"     //write to 0th page
-			"int 0x10;"
-			:
-			: "r" (*str++)
-			: "ax", "bx"
-		);
-	}
+	for(; *str; str++) printChar(*str);
 }
 
 int compareStringN(const volatile char __far *original, const volatile char __far *compare, size_t max_length) {
@@ -36,6 +38,13 @@ int compareStringN(const volatile char __far *original, const volatile char __fa
 volatile void __far *copyMemory(volatile void __far *destination, const volatile void __far *source, size_t number_of_bytes) {
 	for(size_t i = 0; i < number_of_bytes; i++) {
 		((volatile uint8_t __far *)destination)[i] = ((const volatile uint8_t __far *)source)[i];
+	}
+	return destination;
+}
+
+volatile void __far *setMemory(volatile void __far *destination, int source, size_t number_of_bytes) {
+	for(size_t i = 0; i < number_of_bytes; i++) {
+		((volatile uint8_t __far *)destination)[i] = (unsigned char)source;
 	}
 	return destination;
 }
@@ -73,7 +82,7 @@ void readSectorFar(uint8_t drive_id, uint16_t segment, uint16_t pointer, uint16_
 		"mov ch, al;"// Low 8 bits of absolute track
 		"push cx;"
 		"mov cl, 6;"// High 2 bits of absolute track
-		"shl ah, cl;" //SHift Left
+		"shl ah, cl;" //Shift Left
 		"pop cx;"
 		"or cl, ah;"// Now cx is set with respective track and sector numbers
 

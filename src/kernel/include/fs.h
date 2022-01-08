@@ -108,4 +108,7 @@ drive_info_t *findDriveInfo(const uint8_t, drive_info_t *);
 file_info_t *findFileInfo(const drive_info_t *, const char *, file_info_t *);
 uint16_t copyFileContents(const drive_info_t *, const file_info_t *, uint16_t);
 
+//helper function for lib
+int __far mapFileToSegment(uint8_t, const char *, uint16_t);
+
 #endif

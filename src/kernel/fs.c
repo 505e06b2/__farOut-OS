@@ -1,5 +1,7 @@
 #include "fs.h"
 
+extern drive_info_t boot_drive_info;
+
 drive_info_t *findDriveInfo(const uint8_t drive_id, drive_info_t *drive_info) {
 	bpb_t bootsector;
 	readSector(drive_id, (void *)&bootsector, 0);
@@ -89,4 +91,26 @@ uint16_t copyFileContents(const drive_info_t *drive_info, const file_info_t *fil
 	}
 
 	return output_segment;
+}
+
+int __far mapFileToSegment(uint8_t drive_id, const char *filename, uint16_t segment) {
+	const size_t segment_max = (uint16_t)-1;
+	drive_info_t drive_info;
+	file_info_t file_info;
+
+	if(findDriveInfo(drive_id, &drive_info) == NULL) {
+		//printString("Failed to find drive info");
+		return 1;
+	}
+
+	if(findFileInfo(&drive_info, filename, &file_info) == NULL) {
+		//printString("Failed to find file");
+		return 1;
+	}
+
+	if(file_info.size >= segment_max) return 1; //too big for segment
+
+	//setMemory((volatile void __far *)SEGMENT_TO_FAR_POINTER(segment), 0, segment_max);
+	copyFileContents(&drive_info, &file_info, segment);
+	return 0;
 }

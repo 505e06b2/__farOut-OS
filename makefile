@@ -60,7 +60,7 @@ obj/lib_%.o: src/standard_library/%.c $(KERNEL_OUT)
 
 init:
 	dd if=/dev/zero of=$(FLOPPY) bs=512 count=2880
-	mkfs.fat -D 0 -n "5OS" $(FLOPPY)
+	mkfs.fat -D 0 -n "FAROUT" $(FLOPPY)
 
 run: all
 	dd conv=notrunc if=$(BOOT) of=$(FLOPPY) bs=1 skip=62 seek=62

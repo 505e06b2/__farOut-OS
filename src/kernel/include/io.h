@@ -22,6 +22,7 @@ void printChar(const char);
 void printString(const char __far *);
 int compareStringN(const volatile char __far *, const volatile char __far *, size_t); //strncmp
 volatile void __far *copyMemory(volatile void __far *, const volatile void __far *, size_t); //memcpy
+size_t copyStringMemory(volatile char __far *, const volatile char __far *); //strcpy
 volatile void __far *setMemory(volatile void __far *, int, size_t); //memset
 
 

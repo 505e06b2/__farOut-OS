@@ -6,12 +6,11 @@
 
 #include "start.h"
 
-extern start_data_t *start_data;
+extern program_args_t *start_data; //this should be accessible 1-1 as parameters below
 
-void main(int argc, char argv) { //as all strings are stored sequentially, access like this- it may be easier to use start_data.argv as it has size info
-	printf("argc: %x\r\n", argc);
-	printf("argv: "); for(size_t i = 0; i < 33; i++) putchar(*(&argv + i)); printf("\r\n"); //careful with 36 -> start_data_t.argv
-	printf("boot_drive: %x\r\n", start_data->boot_drive_id);
+void main(char *argv, uint8_t boot_drive) { //as all strings are stored sequentially, access like this- it may be easier to use start_data.argv as it has size info
+	printf("argv: %s\r\n", argv);
+	printf("boot_drive: %x\r\n", boot_drive);
 
 	char buffer[1024]; //1kb
 	char *str;

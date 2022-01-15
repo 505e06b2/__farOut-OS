@@ -42,6 +42,16 @@ volatile void __far *copyMemory(volatile void __far *destination, const volatile
 	return destination;
 }
 
+size_t copyStringMemory(volatile char __far *destination, const volatile char __far *source) {
+	size_t i = 0;
+	for(; source[i] != '\0'; i++) {
+		destination[i] = source[i];
+	}
+	i++; //for '\0'
+	destination[i] = '\0';
+	return i;
+}
+
 volatile void __far *setMemory(volatile void __far *destination, int source, size_t number_of_bytes) {
 	for(size_t i = 0; i < number_of_bytes; i++) {
 		((volatile uint8_t __far *)destination)[i] = (unsigned char)source;

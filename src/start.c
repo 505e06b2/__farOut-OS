@@ -7,7 +7,7 @@ uint16_t previous_stack_pointer;
 uint16_t previous_stack_segment;
 uint16_t previous_base_pointer;
 
-start_data_t *start_data = (start_data_t *)(0xffff + 1 - sizeof(start_data_t));
+program_args_t *start_data = (program_args_t *)(0xffff + 1 - sizeof(program_args_t));
 
 //need to be able to pass args from the kernel somehow, the stack is in the wrong segment here though
 void __far _start() {

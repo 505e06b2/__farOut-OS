@@ -106,15 +106,7 @@ void _start() {
 
 	printString("Loading shell at \"5000:0000\"\r\n");
 	task_t current_task;
-	{
-		start_data_t start_data;
-		start_data.boot_drive_id = boot_drive_id;
-		start_data.argc = 3;
-		copyMemory(start_data.argv, "FAKE ARGUMENTS FAKE ARGUMENTS FAKE", 33);
-
-		task_create(&boot_drive_info, 0x5000, "SHELL   COM", &start_data, &current_task);
-	}
-
+	task_create(&boot_drive_info, 0x5000, "SHELL   COM", "ARGUMENT!!", &current_task);
 	task_run(&current_task);
 
 	//clearScreen();

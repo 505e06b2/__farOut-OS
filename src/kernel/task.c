@@ -4,7 +4,7 @@ task_t *task_create(
 	const drive_info_t *drive_info,
 	const uint16_t requested_segment,
 	const char *filename,
-	const start_data_t *start_data,
+	const char __far *argv,
 
 	task_t *ret
 ) {
@@ -13,6 +13,7 @@ task_t *task_create(
 	if(findFileInfo(drive_info, filename, &file_info) == NULL) {
 		//printf("Could not find \"%s\" on disk!\r\n", filename);
 		halt();
+		return NULL;
 	}
 
 	copyFileContents(drive_info, &file_info, requested_segment);
@@ -21,9 +22,25 @@ task_t *task_create(
 	ret->id = ++id;
 	ret->segment_location = requested_segment;
 
+	//"in-segment" calculations
+	void *heap_location = 0;
+	heap_location += file_info.size;
+	heap_location += (size_t)heap_location % 2; //align heap to 2 bytes
+	ret->heap_location = heap_location;
+
+	volatile uint8_t __far *requested_segment_heap = (volatile uint8_t __far *)SEGMENT_TO_FAR_POINTER(requested_segment);
+	requested_segment_heap += (size_t)heap_location;
+	size_t copied_bytes = copyStringMemory(requested_segment_heap, argv);
+
+	//add stack loc to task_t at some point?
 	volatile uint8_t __far *requested_segment_stack = (volatile uint8_t __far *)SEGMENT_TO_FAR_POINTER(requested_segment) + 0xffff + 1; //+1 so the end lines up with 0x*ffff
-	requested_segment_stack -= sizeof(start_data_t);
-	copyMemory(requested_segment_stack, start_data, sizeof(start_data_t));
+	requested_segment_stack -= sizeof(program_args_t);
+	{
+		program_args_t arguments;
+		arguments.argv = heap_location;
+		arguments.boot_drive_id = drive_info->id;
+		copyMemory(requested_segment_stack, &arguments, sizeof(program_args_t));
+	}
 
 	return ret;
 }

@@ -6,11 +6,10 @@
 #define FILENAME_SIZE (8+3)
 
 #pragma pack(push, 2) //this should be done automatically by the compiler, but it is very important to have stack alignment
-typedef struct start_data_s {
-	int argc; //min of 0, max of the size of argv (3)
-	char argv[3][FILENAME_SIZE];
+typedef struct program_args_s {
+	char *argv;
 	uint8_t boot_drive_id;
-} start_data_t;
+} program_args_t;
 #pragma pack(pop)
 
 #endif

@@ -17,6 +17,10 @@ make run
 ### Assumptions
 - When loading files, it is assumed that are under 64k as they would not entirely fit into a segment
 
+### Design
+- Kernel operates a stack as it executes code
+- Libc does not have a stack. The design of the stdlib is to provide far functions to programs that inter-operate with the kernel
+
 ## Layout Of Memory By Segment
 | 0          | 1                               | 2 | 3 | 4 | 5            | 6    | 7      | 8+         |
 |------------|---------------------------------|---|---|---|--------------|------|--------|------------|

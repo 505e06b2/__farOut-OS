@@ -30,7 +30,7 @@ task_t *task_create(
 
 	volatile uint8_t __far *requested_segment_heap = (volatile uint8_t __far *)SEGMENT_TO_FAR_POINTER(requested_segment);
 	requested_segment_heap += (size_t)heap_location;
-	size_t copied_bytes = copyStringMemory(requested_segment_heap, argv);
+	copyStringMemory((volatile char __far *)requested_segment_heap, argv);
 
 	//add stack loc to task_t at some point?
 	volatile uint8_t __far *requested_segment_stack = (volatile uint8_t __far *)SEGMENT_TO_FAR_POINTER(requested_segment) + 0xffff + 1; //+1 so the end lines up with 0x*ffff

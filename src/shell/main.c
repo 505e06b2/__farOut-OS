@@ -16,6 +16,7 @@ void main(char *argv, uint8_t boot_drive) { //as all strings are stored sequenti
 	char *str;
 	size_t command_len;
 
+	/*
 	if(segmentmap(start_data->boot_drive_id, "NOVEL   TXT", 0x1000)) {
 		puts("Failed to read Novel.txt");
 	} else {
@@ -24,6 +25,7 @@ void main(char *argv, uint8_t boot_drive) { //as all strings are stored sequenti
 		//putchar(*c);
 		//for(;*c; c++) putchar(*c);
 	}
+	*/
 
 	while(1) {
 		//memset(buffer, 0, sizeof(buffer)); //completely clear buffer - just check properly instead

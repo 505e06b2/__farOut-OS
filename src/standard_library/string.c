@@ -43,6 +43,15 @@ void * __far memset(void *destination, int value, size_t number_of_bytes) {
 	return destination;
 }
 
+volatile char * __far strcpy(volatile char *destination, volatile char *source) {
+	size_t i = 0;
+	for(; source[i]; i++) {
+		destination[i] = source[i];
+	}
+	destination[++i] = '\0';
+	return destination;
+}
+
 char * __far strchr(char *str, int c) {
 	for(; *str; str++) {
 		if(*str == c) return str;

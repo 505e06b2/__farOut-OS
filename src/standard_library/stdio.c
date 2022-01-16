@@ -1,6 +1,16 @@
 #include "stdio.h"
 
-static void _print(const char __far *str) {
+static void _print(const char *str) {
+	if(str == NULL) {
+		putchar('(');
+		putchar('N');
+		putchar('U');
+		putchar('L');
+		putchar('L');
+		putchar(')');
+		return;
+	}
+
 	while(*str) {
 		putchar(*str);
 		str++;

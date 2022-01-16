@@ -28,7 +28,7 @@ void printString(const char __far *str) {
 }
 
 int compareStringN(const volatile char __far *original, const volatile char __far *compare, size_t max_length) {
-	for(size_t i = 0; i < max_length && original[i] && compare[i]; i++) { //ensure '\0' is checked
+	for(size_t i = 0; i < max_length; i++) { //don't check here if one ends early, as the charcode will be lower than the other
 		if(original[i] > compare[i]) return 1;
 		if(original[i] < compare[i]) return -1;
 	}

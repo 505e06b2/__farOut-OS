@@ -93,7 +93,7 @@ void _start() {
 		file_info_t file_info;
 
 		if(findFileInfo(&boot_drive_info, "LIBC    COM", &file_info) == NULL) {
-			printString("Could not find \"LIBC.COM\"!"); //may have something to do with the CHS of HDD/Floppy not being accounted for
+			printString("Could not find \"LIBC.COM\" on disk!"); //may have something to do with the CHS of HDD/Floppy not being accounted for
 			halt();
 		}
 

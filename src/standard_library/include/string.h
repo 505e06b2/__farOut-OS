@@ -14,6 +14,7 @@ int __far strcmp(const volatile char *, const volatile char *);
 void * __far memcpy(void *, const void *, size_t);
 void * __far memset(void *, int, size_t);
 
+volatile char * __far strcpy(volatile char *, volatile char *);
 char * __far strchr(char *, int);
 
 #endif

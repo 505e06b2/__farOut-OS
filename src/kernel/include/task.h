@@ -16,10 +16,12 @@ task_t *task_create(
 	const drive_info_t *,
 	const uint16_t,
 	const char *,
-	const char __far *,
+	const char *,
 
 	task_t *
 );
 void task_run(task_t *);
+
+int __far executeCOM(uint8_t, const char *, const char *);
 
 #endif
